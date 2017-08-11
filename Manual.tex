@@ -1,0 +1,180 @@
+\documentclass[a4paper]{scrartcl}
+
+\usepackage[british]{babel}
+
+\newcommand{\cpp}{\mbox{C\texttt{++}}}
+
+\begin{document}
+
+\title{Typesetting a newspaper}
+\author{Robert J Lee}
+\date{14\textsuperscript{th} June 2017}
+
+\maketitle
+
+\begin{abstract} 
+  Manual for a program for typesetting a newspaper page.
+\end{abstract}
+
+
+\section{Terminology}
+
+A \textit{newspaper} is the document we are typesetting.
+
+An \textit{article} is a sub-document consisting of a title, including
+headline, and potentially multiple paragraphs of text. No restrictions
+are placed on the content except that it is to be rendered as
+\LaTeX\ source and may be parsed multiple times during rendering.
+
+The \textit{editor} is the user of the program, who is assumed to have
+collected the articles and to have final responsibility for passing
+the finished design. This is considered to be synonymous with
+\textit{layout designer}
+
+
+\section{Description of System}
+
+\subsection{Architecture}
+
+The system consists of a \cpp program to perform page layout and
+coordinate the output. Input is taken from article files, one per
+source file, and a metadata file. \LaTeXe\ is used variously to parse
+the input files, determine the possible dimensions of each article and
+to typeset the final page.
+
+
+\subsection{Limitations}
+
+This system may fail to produce an output page, if there is too much
+text to fit on the page or if articles cannot be laid out without
+overlapping.
+
+The current algorithm does not perform an exhaustive search, as this
+would take an amount of time exponentionally proportional to the
+number of articles, so some theoretically valid cases may also not
+produce a complete page of output.
+
+Multiple pages are not yet implemented; this is considered for a
+future version.
+
+No attempt is made to balance the page or deal with extra whitespace.
+
+Articles may be set in multiple columns, but will always be laid out
+on a rectangle. There are no cutaways for images or to wrap around
+other articles.
+
+While any \LaTeX\ code may be used in the articles, the articles
+themselves may be included and parsed muliple times. Therefore, care
+must be taken with anything more complex than a self-contained
+document section; for example, when incrementing the value of a
+counter, the incrementation may happen repeatedly as the possible
+dimensions of the document are worked out and again when the final
+document is typeset.
+
+Article text will be read as \LaTeX\ source code. This provides a
+great deal of flexibility, but means that some preprocessing may be
+needed if the articles are supplied in other formats, such as plain
+text, markdown, or the format of a WYSIWYG editor.
+
+\TeX\ and \LaTeX\ require special consideration when handling text in
+narrow columns; generally, the standard of full-justified layout
+required by default is too high to be rendered as the defaults are
+intended for full-width paperbacks and similar articles.
+
+\section{Input File Format}
+
+An example input file named \texttt{paper.tex} looks like this:
+
+\begin{verbatim}
+\documentclass{rjlnewsp4}
+\usepackage[paperheight=10.75in,paperwidth=8.25in,margin=1in]{geometry}
+\usepackage[british]{babel}
+\usepackage{indentfirst}
+\begin{document}
+\begin{newspaper}
+  \article{article1.art}{Headline 1}[\hfill Mx Smith]
+  \article{article2.art}{Headline 2}[Mx Smith]
+  \article{article3.art}{Headline 3}
+  \article{article4.art}{Headline 4}[Mx Smith]
+\end{newspaper}
+\end{document}
+\end{verbatim}
+
+This structure may be extended with further options in future.
+
+\begin{description}
+  \item[documentclass] \hfill This is the \LaTeX\ class of the input
+    document. It must be the first line in the file.
+  \item[geometry] \hfill This \LaTeX\ package is one of many ways of
+    specifying the paper size and outer margins.
+  \item[babel] \hfill While optional, it is strongly recommended to
+    include the \verb!babel! package, which sets up hyphenation rules,
+    essential for typesetting words in narrow columns. The
+    \verb!british! option changes the hypenation rules from American
+    English to British; see the Babel package documentation for more
+    details and further options.
+  \item[indentfirst] \hfill Without this package, the first paragraph
+    of each article is unindented; newspapers typically indent the
+    first paragraph.
+  \item[document] \hfill The \verb!\begin{document}! and
+    \verb!\end{document}! lines bookend the body of any
+    \LaTeX\ document. Any additional \LaTeX\ modules used by the
+    articles should be included before this point.
+  \item[newspaper] \hfill The \verb!\begin{newspaper}! and
+    \verb!\end{newspaper}! lines create the \texttt{newspaper}
+    environment, in which articles are typeset as a newspaper. Adding
+    any additional content outside this environment may confuse the
+    \cpp\ program and cause layout errors.
+  \item[\texttt{$\backslash$ article}] \hfill This declares an individual article to
+    be typeset on this page. This command has three parameters:
+    \begin{description}
+      \item[\texttt{article1.art}] \hfill This is the name of a file
+        containing the article text.
+      \item[\texttt{Headline 1}] \hfill This is the article headline.
+        Note that longer headlines will take more vertical space when
+        multi-column articles are used.
+      \item[\texttt{Mx Smith}] \hfill It is suggested that a
+        sub-headline may be used for the author's name. \verb!\hfill!
+        can be used before the sub-headline to right-align it, or after the
+        name to left-align it. The sub-headline may be omitted
+        completely as shown in the third article.
+    \end{description}
+\end{description}
+
+Each article file contains only the article text, without headers,
+footers or other ornamentation.
+
+The text is to be supplied in plain \LaTeX\ source code, without any
+preamble, postable or headers. This gives certain characters special
+meaning, and not all article files are legal. To convert from plain
+text to \LaTeX\ the following is usually sufficient, although
+additional changes may be needed if other packages or commands are
+declared before \verb!\begin{document}!:
+
+\begin{description}
+  \item{\$ \~ \% \_ \{ \} \# } These special characters must be escaped
+   with a leading backslash~(\textbackslash).
+  \item{"} While legal, the double-quote character will be typeset as
+    an inch sign. Use backticks and single-quote marks for opening and
+    closing quotes, which may be doubled. \verb!``!For example\verb!''!
+    will be shown as ``For example''.
+  \item{\textless \textgreater \textbackslash} should be set as
+    \textbackslash textless, \textbackslash textgreater or
+    \textbackslash textbackslash, followed by a space which is not
+    printed. If you want the space to be printed, you can follow it
+    with \textbackslash then space instead.
+\end{description}
+
+In addition, you should leave a blank line between each paragraph.
+
+As a special rule, if you use accented characters in the article, you
+should start with the line:
+
+\begin{verbatim}
+\inputencoding{utf8}
+\end{verbatim}
+
+You may need to change \verb!utf8! to match the encoding of the file,
+eg to \verb!latin1! for ISO~Latin-1.
+
+\end{document}

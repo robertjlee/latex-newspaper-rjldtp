@@ -1,0 +1,1336 @@
+% \iffalse meta-comment
+% 
+% Copyright (C) 2007 by Robert J Lee <latex@rjlee.homelinux.org>
+% --------------------------------------------------------------
+% 
+% This file may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.2
+% of this license or (at your option) any later version.
+% The latest version of this license is in:
+% 
+% http://www.latex-project.org/lppl.txt
+% 
+% and version 1.2 or later is part of all distributions of LaTeX 
+% version 1999/12/01 or later.
+% 
+% \fi
+% 
+% \iffalse
+%<*driver> 
+\ProvidesFile{rjlnewsp4.dtx}
+%</driver> 
+%<package> \NeedsTeXFormat{LaTeX2e}[1999/12/01]
+%<package> \ProvidesPackage{rjlnewsp4}
+%<*package> 
+[2017/06/27 v0.1 .dtx rjlnewsp4 file]
+%</package> 
+% 
+%<*driver> 
+\documentclass{ltxdoc}
+\EnableCrossrefs         
+\CodelineIndex
+\RecordChanges
+%\usepackage{rjlnewsp4}
+\usepackage{indentfirst}
+\usepackage{relsize}
+\begin{document}
+\makeatletter
+\makeatother
+\DocInput{rjlnewsp4.dtx}
+\end{document}
+%</driver> 
+% \fi
+% 
+% \CheckSum{0}
+% 
+% \CharacterTable
+% {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%   Digits        \0\1\2\3\4\5\6\7\8\9
+%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%   Dollar        \$     Percent       \%     Ampersand     \&
+%   Acute accent  \'     Left paren    \(     Right paren   \)
+%   Asterisk      \*     Plus          \+     Comma         \,
+%   Minus         \-     Point         \.     Solidus       \/
+%   Colon         \:     Semicolon     \;     Less than     \<
+%   Equals        \=     Greater than  \>     Question mark \?
+%   Commercial at \@     Left bracket  \[     Backslash     \\
+%   Right bracket \]     Circumflex    \^     Underscore    \_
+%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%   Right brace   \}     Tilde         \~}
+% 
+% 
+% \changes{v0.5}{2004/11/05}{Unstable version}
+% 
+% \GetFileInfo{rjlnewsp4.dtx}
+% 
+% \DoNotIndex{\newcommand,\newenvironment}
+% 
+% 
+% \title{The \textsf{rjlnewsp4} class\thanks{This document
+%     corresponds to \textsf{rjlnewsp4}~\fileversion, dated \filedate.}}
+% \author{Robert J Lee \\ \texttt{latex@rjlee.homelinux.org}}
+% 
+% \maketitle
+%
+% \section{Introduction}
+%
+% \subsection{Features}
+%
+% \begin{itemize}
+% \item Part of the newspaper typesetting package
+% \item Determines the size of individual articles prior to
+% typesetting, at various column counts.
+% \item Accepts a layout file with the location of individual articles
+% to perform final typesetting
+% \end{itemize}
+%
+% \subsection{Background}
+%
+% There is still significant lack of support for decent
+% newspaper-style output from \LaTeX, and this package is one intended
+% to improve the situation. While several solutions have already been
+% tried (many of which are available on \textsmaller{CTAN}), most seem
+% to revolve around the |multicol| package, which is excellent for
+% general multicolumn documents, but is far too strict in its
+% implementation to allow for the styles of headings and column
+% layouts found in all modern newspapers.
+%
+% The major limitation of |multicol| for newspapers is that it
+% requires all text to be set to the same width throughout each
+% multicolumn environment, which comes out of the fact that \TeX's
+% page builder must build more than a whole page of text before it can
+% determine the optimum place for each page break, and since text can
+% only be set into lines once, its width must be known
+% beforehand. This makes it difficult to change the width in any way
+% that is page-aware. The usual solution --- and the solution used by
+% |multicol| --- is to simply declare a rule that all text must be
+% the same width; however, it is actually possible to change the width
+% at any known point in the \textit{source} document.
+%
+% This package does not seek to avoid this limitation; indeed, the
+% |multicol| package is used directly at the time of
+% writing. This is simply the minimal code necessary to layout
+% newspapers in paste-up style without human placement of
+% articles. Once working, it is intended to remove the |multicol|
+% code and replace it with our own implementation, to allow
+% significant changes to the document.
+%
+% This package was born out of the realisation that each article could
+% be set with a different width to the others --- even though
+% typesetting each page with a different width would be hard, so if an
+% article spilled across pages then its width could not easily be
+% match different column widths on each page.
+%
+% The practical upshot of this is that, provided the user is prepared
+% to accept that each article will have constant width, an efficient
+% solution to the newspaper problem is possible.
+%
+% \subsection{Current Limitations}
+%
+% \begin{itemize}
+% \item Currently, only one page is supported.
+% \item The maximum length of any individual article is~16,384~points
+%   (around 5 metres, or nearly 19 feet)
+% \item A \texttt{C++} program is used to calculate a page layout.
+%   This is still under development, so the ideal layout may change.
+%   Generated layout files are stored to allow the final document to
+%   be repeatedly generated through \TeX.
+% \item Each page is a separate document, with no automated support
+%   for continuation of articles between pages.
+% \item No support is provided for changing the page size or
+%   orientation when injecting a newspaper into another document
+% \item The package provides its own document class.
+%   Other formats may set up environments that conflict with
+%   |rjlnewsp4|. it is especially easy to produce text that overtypes
+%   the newspaper articles.
+% \item Running in a |minipage| environment is untested, and unlikely
+%   to work
+% \item All articles must be in constant-width columns (although the
+%   width may differ between articles). Magazine-style graphics that
+%   descend into columns are not supported, except by injecting
+%   |\parshape| and friends into the source text.
+% \item An interface for the specification of alternate widths per
+%   article is yet to be implemented.
+% \item No support for many familiar markup constructs, including
+%   footnotes or endnotes, page markers, running headers and so on. It
+%   may be possible to add these in future.
+% \item No support for page titles and similar; these are expected to
+%   be added in the near future.
+% \end{itemize}
+%
+% \subsection{Paste-Up Newspapers}
+%
+% \textit{Paste-up} refers to an early form of electronic typesetting
+% for newspapers. An operator would type text into an electronic
+% machine, which would typeset the text neatly into columns of a
+% prescribed width. The operator would then cut the columns into
+% lengths, and literally paste them onto the a master copy to form the
+% newspaper.
+%
+% This package uses a similar technique to produce neatly typeset
+% newspapers using \LaTeX, along with a couple of tricks to make the
+% document look neater.
+%
+% \section{Usage}
+% \subsection{Structure of a Newspaper}
+% 
+% \DescribeEnv{newspaper}|\begin{newspaper}|
+%   \par\hspace{1in}\vdots\par
+%   |\end{newspaper}|
+%
+% The |newspaper| environment encloses the entire newspaper. If used
+% in the middle of a document, it will end the current page and embed
+% a newspaper in one or more pages of its own.
+% 
+% Generally, a |newspaper| environment should surround each newspaper
+% in your document. Unless specified otherwise, all other commands
+% described below should appear in a |newspaper| environment.
+% 
+% \DescribeMacro{article}\marg{filename}\marg{headline}\oarg{subtitle}
+% 
+% Use inside |newspaper|
+% 
+% The |article| macro defines a single article for the
+% newspaper. The |filename| determines the file from which this
+% article is read.
+% 
+% The |headline| is the headline for the article.
+%
+% The optional |subtitle| is the subtitle for the article. This can be
+% used for the author's name.
+% 
+% All text in the environment will be set out in balanced columns at
+% the full page height.
+% 
+% \subsection{Changing the Appearance}
+% 
+%% % \DescribeMacro{\leftalley}
+%% % 
+%% % Between two adjacent columns is a gap known as an \textit{alley},
+%% % which prevents the reader's eye from jumping from one column to the
+%% % next. In |rjlnewsp|, the alley is built up of two spaces (determined
+%% % by |\leftalley| and |\rightalley|) and a downrule (a vertical line,
+%% % determined by |\divwidth|).
+%% % 
+%% % This length holds the partial width of the alley. This is space
+%% % added at the left-hand side of each column.
+%% % 
+%% % \DescribeMacro{\rightalley}
+%% % 
+%% % This length holds the partial width of the alley. This is space
+%% % added at the right-hand side of each column.
+%% % 
+%% % \DescribeMacro{\divwidth}
+%% % 
+%% % A vertical line, known as a downrule, normally appears in the alley
+%% % between two adjacent columns. |\divwidth| holds the width of the
+%% % dark vertical lines between columns. To avoid these lines, set this
+%% % length to~|0pt|.
+% 
+% \section{Implementation}
+% \subsection{Preamble}
+% 
+%    \begin{macrocode}
+\ProvidesClass{rjlnewsp4}[2017/07/12 Robert J Lee]
+\NeedsTeXFormat{LaTeX2e}
+%    \end{macrocode}
+%
+% There hasn't been a document class for newspapers before.
+% Using |article| as a parent class seemed like a bad idea because it
+% pulls in a lot of article-related notes for typesetting titles,
+% articles, sections and so on that don't really apply to newspapers.
+%
+% Using |minimal| as a base class is also a bad idea for the reasons
+% set out in that package. So instead we start from scratch.
+%%%%%%%LoadClass{article}
+%%%%%%% copied from minimal:
+%
+% All document classes must define |\normalsize|, |\textwidth| and
+% |\textheight|. |10pt| seems like a good standard to go with, and
+% the page sizes have been copied from |minimal| until I can think of
+% something better to use.
+%    \begin{macrocode}
+\renewcommand\normalsize{\fontsize{10pt}{12pt}\selectfont}
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{8in}
+%    \end{macrocode}
+%
+% We will handle any page numbers.
+%    \begin{macrocode}
+\pagenumbering{arabic}  % but no page numbers are printed because:
+\pagestyle{empty}       % this is actually already in the kernel
+%    \end{macrocode}
+% 
+% \section{Dependencies}
+% Next declare our pagkage dependencies. Effort has been made to
+% minimise our dependencies somewhat, but there are a few that are
+% still used.
+%
+% |ifthen| provides a \LaTeX-style |\ifthenelse| macro, used mostly in
+% validation.
+%
+% |forloop| is used to iterate through articles and columns.
+%
+% |multicol| is used as an easy way to build rectangular
+% articles. This may be removed in a future release to provide more
+% control over article spacing and to allow non-rectangular articles
+% in the layout.
+%
+% Note that |eso-pic| is requiled later on, but only during the final
+% layout. This provides a slightly convenient low-level primative that
+% we use for setting text at exact coordinates on the page.
+%    \begin{macrocode}
+\RequirePackage{ifthen}
+\RequirePackage{forloop}
+\RequirePackage{multicol}
+%    \end{macrocode}
+%
+% The next section is copied from the article class. It sets up the
+% options for |draft|, |final|, |10pt|, |11pt| and |12pt|.
+%    \begin{macrocode}
+\newcommand\@ptsize{0}
+\DeclareOption{draft}{\setlength\overfullrule{5pt}}
+\DeclareOption{final}{\setlength\overfullrule{0pt}}
+\DeclareOption{10pt}{\renewcommand\@ptsize{0}}
+\DeclareOption{11pt}{\renewcommand\@ptsize{1}}
+\DeclareOption{12pt}{\renewcommand\@ptsize{2}}
+%    \end{macrocode}
+%
+% Standard lengths as per |article|. These may be tweaked befero
+% release to better support text in narrow columns.
+%
+%    \begin{macrocode}
+\setlength\arraycolsep{5\p@}
+\setlength\tabcolsep{6\p@}
+\setlength\arrayrulewidth{.4\p@}
+\setlength\doublerulesep{2\p@}
+\setlength\tabbingsep{\labelsep}
+\skip\@mpfootins = \skip\footins
+\setlength\fboxsep{3\p@}
+\setlength\fboxrule{.4\p@}
+\setlength\columnsep{10\p@}
+\setlength\columnseprule{0\p@}
+%    \end{macrocode}
+%
+% \DescribeMacro{\verse}
+% verse is copied from |article|.
+% \DescribeMacro{\quotation}
+% quotation is copied from |article|.
+% \DescribeMacro{\quote}
+% quote is copied from |article|.
+% \DescribeMacro{\table}
+% table is copied from |article|.
+%    \begin{macrocode}
+\newenvironment{verse}
+               {\let\\\@centercr
+                \list{}{\itemsep      \z@
+                        \itemindent   -1.5em%
+                        \listparindent\itemindent
+                        \rightmargin  \leftmargin
+                        \advance\leftmargin 1.5em}%
+                \item\relax}
+               {\endlist}
+\newenvironment{quotation}
+               {\list{}{\listparindent 1.5em%
+                        \itemindent    \listparindent
+                        \rightmargin   \leftmargin
+                        \parsep        \z@ \@plus\p@}%
+                \item\relax}
+               {\endlist}
+\newenvironment{quote}
+               {\list{}{\rightmargin\leftmargin}%
+                \item\relax}
+               {\endlist}
+\newcounter{table}
+\renewcommand\thetable{\@arabic\c@table}
+\def\fps@table{tbp}
+\def\ftype@table{2}
+\def\ext@table{lot}
+\def\fnum@table{\tablename\nobreakspace\thetable}
+\newenvironment{table}
+               {\@float{table}}
+               {\end@float}
+\newenvironment{table*}
+               {\@dblfloat{table}}
+               {\end@dblfloat}
+\newlength\abovecaptionskip
+\newlength\belowcaptionskip
+\setlength\abovecaptionskip{10\p@}
+\setlength\belowcaptionskip{0\p@}
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1: #2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1: #2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+%    \end{macrocode}
+%
+% \DescribeMacro{\today}
+% |\today| is a macro from |article|.
+% It's been modified to put out dates in British format, with proper superscripts.
+% To use the American-style default as per |article|, use the option |ltxtoday|
+%    \begin{macrocode}
+\newcommand{\today}{%
+  \number\day\textsuperscript{\ifcase\day th%0
+    \or st\or nd\or rd\else th\fi}\,% \, shorter than \space due to superscript
+  \ifcase\month\or
+    January\or February\or March\or April\or May\or June\or
+    July\or August\or September\or October\or November\or December\fi
+    \space\number\year}
+%    \end{macrocode}
+%
+% \DescribeMacro{\DeclareOption}
+% Here we process some class options.
+% \begin{itemize}
+% \item \texttt{ltxtoday} Option that can be passed to use the
+% US-style date format used by the standard |article| class.
+%    \begin{macrocode}
+\DeclareOption{ltxtoday}{
+  \renewcommand{\today}{\ifcase\month\or
+    January\or February\or March\or April\or May\or June\or
+    July\or August\or September\or October\or November\or December\fi
+    \space\number\day, \number\year}
+}
+%    \end{macrocode}
+% \item \texttt{sizing} Passed by the C++ program to indicate that articles
+% are being sized, to generate the layout file. Note that the file is
+% generated in C++, not in \LaTeX. \textit{This option is ignored;
+% sizing wil be performed if the |layout| option is not given}.
+%    \begin{macrocode}
+\DeclareOption{sizing}{%
+% NB: We need this line. |\jobname.lay| is read by the C++ program.
+  \typeout{Generating Layout file \jobname.lay}%
+}
+%    \end{macrocode}
+% \item \texttt{layout} Instead of sizing, the article will be typeset
+% using the layout file. Usually passed by the C++ program.
+% \end{itemize}
+%    \begin{macrocode}
+\DeclareOption{layout}{%
+  \typeout{This shalt be the final output. Reading \jobname.lay}%
+  \newcommand{\rjl@dofinal}{}%
+}
+\ProcessOptions%
+% Copied from article:
+\input{size1\@ptsize.clo}
+\setlength\lineskip{1\p@}
+\setlength\normallineskip{1\p@}
+\renewcommand\baselinestretch{}
+\setlength\parskip{0\p@ \@plus \p@}
+\@lowpenalty   51
+\@medpenalty  151
+\@highpenalty 301
+%    \end{macrocode}
+%
+%    \begin{macrocode}
+% \DescribeMacro{\theartfile}
+% \DescribeMacro{\theheadline}
+% \DescribeMacro{\thesubhead}
+%      Get the file, headline and subhead
+\newcommand{\theartfile}{}
+\newcommand{\theheadline}{}
+\newcommand{\thesubhead}{}
+%    \end{macrocode}
+%
+% \begin{macro}{\headline}
+% \marg{theheadline}
+%
+% Typesets the headline. Called automatically during article layout.
+% By default, this is passed |\theheadline| which is a macro expanding to the
+% user-supplied headline. By default, it typesets its argument in a larger font,
+% bold and centered.
+%
+%    \begin{macrocode}
+\newcommand{\headline}[1]{%
+  \centerline{\large \textbf{#1}}%
+  \par%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\subheadline}
+% \marg{thesubhead}
+%
+% Typesets the sub-headline. Called automatically during article layout.
+% By default, this is passed |\thesubhead| which is a macro expanding to the
+% user-supplied headline. By default, it typesets its argument in a slanted font
+% and centered. This macro is called even if no subheadline is given.
+%
+%    \begin{macrocode}
+\newcommand{\subheadline}[1]{%
+  \centerline{\textsl{#1}}%
+  \par%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \DescribeMacro{rjl@mincols}\DescribeMacro{rjl@maxcols}
+% Define counters used to store the range of column options for the
+% current article:
+%    \begin{macrocode}
+\newcounter{rjl@mincols}
+\newcounter{rjl@maxcols}
+%    \end{macrocode}
+%
+% \begin{macro}{\rjl@readnumcols}
+% |\rjl@readnumcols| is a macro to parse the human-entered number of
+% columns (used in |\article| to parse the first optional parameter)e
+%
+% It is passed 4 single-character parameters from the user's input
+% option, with subsequent parameters filled with |\relax|.
+%
+% Would be nice to do more validation here, but this'll do for parsing
+% for now\dots
+%    \begin{macrocode}
+\def\rjl@readnumcols#1#2#3#4{
+  \setcounter{rjl@mincols}{1}
+  \setcounter{rjl@maxcols}{5}
+  \ifthenelse{\equal{#1}{\relax}}{
+      \ClassError{rjlnewsp4}{First optianal \string\article argument
+        badly formatted}{The first argument must either be the maximum
+        number of columns allowed, or (minimun)-(maximum)}
+    }{
+      \ifthenelse{\equal{#2}{\relax}}{
+        \setcounter{rjl@maxcols}{#1}
+      }{
+        \ifthenelse{\equal{#3}{-}}{
+          \setcounter{rjl@mincols}{#1}
+          \setcounter{rjl@maxcols}{#4}
+        }{
+          \ifthenelse{\equal{#2}{-}}{
+            \setcounter{rjl@mincols}{#1}
+            \setcounter{rjl@maxcols}{#3}
+          }{
+            \ClassError{rjlnewsp4}{First optianal \string\article argument
+              badly formatted}{The first argument must either be the maximum
+              number of columns allowed, or (minimun)-(maximum)}
+          }
+        }
+      }
+  }
+  \ifthenelse{\value{rjl@maxcols} < \value{rjl@mincols}}{
+    \ClassError{rjlnewsp4}{First optianal \string\article\space argument
+        is invalid}{The first argument must either be the maximum
+        number of columns allowed, or (minimun)-(maximum); you cannot
+        specify \arabic{rjl@mincols}--\arabic{rjl@maxcols}: maximum is
+        less than minimum. Swapping maximum and minimun values.}
+    \edef\rjl@tmp{\value{rjl@mincols}} % local
+    \setcounter{rjl@maxcols}{\value{rjl@mincols}}
+    \setcounter{rjl@mincols}{\rjl@tmp}
+  }{}
+  \ifthenelse{\value{rjl@mincols} < 1}{
+    \ClassError{rjlnewsp4}{First optianal \string\article\space argument
+        is invalid}{The first argument must either be the maximum
+        number of columns allowed, or (minimun)-(maximum); you cannot
+        specify \arabic{rjl@mincols}--\arabic{rjl@maxcols}: illegal
+        minimum. Using 1--\arabic{rjl@maxcols} instead.}
+    \setcounter{rjl@mincols}{1}
+  }{}
+  \ifthenelse{\value{rjl@mincols} > 9}{
+    \ClassError{rjlnewsp4}{First optianal \string\article\space argument
+        is invalid}{The first argument must either be the maximum
+        number of columns allowed, or (minimun)-(maximum); you cannot
+        specify \arabic{rjl@mincols}--\arabic{rjl@maxcols}: illegal
+        minimum (only 9 columns supported). Using 9 columns instead.}
+    \setcounter{rjl@mincols}{9}
+    \setcounter{rjl@maxcols}{1}
+  }{}
+  \ifthenelse{\value{rjl@maxcols} < 1}{
+    \ClassError{rjlnewsp4}{First optianal \string\article\space argument
+        is invalid}{The first argument must either be the maximum
+        number of columns allowed, or (minimun)-(maximum); you cannot
+        specify \arabic{rjl@mincols}--\arabic{rjl@maxcols}: illegal
+        maximum. Using \arabic{rjl@mincols}--\arabic{rjl@mincols} instead.}
+    \setcounter{rjl@maxcols}{\value{rjl@mincols}}
+  }{}
+  \ifthenelse{\value{rjl@maxcols} > 9}{
+    \ClassError{rjlnewsp4}{First optianal \string\article\space argument
+        is invalid}{The first argument must either be the maximum
+        number of columns allowed, or (minimun)-(maximum); you cannot
+        specify \arabic{rjl@mincols}--\arabic{rjl@maxcols}: illegal
+        maximum (only 9 columns supported). Using 9 columns instead.}
+    \setcounter{rjl@maxcols}{9}
+  }{}
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\article}
+%  \marg{filename}
+%  \marg{headline}
+%  \oarg{subheadline}
+%
+% This is where we get the metainformation for an article.
+% - \oarg{max cols}: Maximum number of columns to set an article
+% at. Currently must be no more than 10. Default is 5.
+% - \marg{filename}: stored in |\theartfile|
+% - \marg{headline}: stored in |\theheadline|
+% - \oarg{subheadline}: stored in |\thesubhead|
+%   
+% NB: increasing the number of column options will significantly
+% increase the amount of time that it takes to process your document,
+% and slightly increase the chance of finding a layout solution that
+% better fills the page.
+%    \begin{macrocode}
+\newcommand{\article}[3][5]{
+  \typeout{Article #2 is #3}
+  \rjl@readnumcols#1\relax\relax\relax\relax
+  \renewcommand{\theartfile}{#2}
+  \renewcommand{\theheadline}{#3}
+% If we are follewed by a [ char, then the optional subhead is present.
+% In which case, read it in and then process article sizes.
+% Otherwise, we process article sizes directly.
+% This is a bit clunky due to \TeX's low-level handling of optional
+% parameters, hence we need to declare the call twice (once for each
+% control path).
+  \@ifnextchar[{\rjl@readsubhead@and@process}{\renewcommand{\thesubhead}{}\rjl@process@article}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\rjl@readsubhead}
+% This is used in the definition of |\article|. It consumes
+% one argument in square brackets and assigns it to |\thesubhead|
+%    \begin{macrocode}
+\def\rjl@readsubhead@and@process[#1]{
+  \renewcommand{\thesubhead}{#1}
+  \rjl@process@article
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Lengths affecting alleys between articles}
+% TODO: Be more clear about the distinction between alleys and gutters.
+%
+% \DescribeMacro{alleyleft}
+% |\alleyleft| is the space of an alley placed to the left a downrule
+% between articles.
+%    \begin{macrocode}
+\newlength{\alleyleft}\setlength{\alleyleft}{0.06in}
+%    \end{macrocode}
+%
+% \DescribeMacro{downrulethick}
+% |\downrulethick| is the thickness of a downrule between articles.
+%    \begin{macrocode}
+\newlength{\downrulethick}\setlength{\downrulethick}{0.005in}
+%    \end{macrocode}
+%
+% \DescribeMacro{downruletop}
+% |\downruletop| is the gap at the top of a downrule between articles.
+%    \begin{macrocode}
+\newlength{\downruletop}\setlength{\downruletop}{0.25in}
+%    \end{macrocode}
+%
+% \DescribeMacro{downrulerbottom}
+% |\downrulebottom| is the gap at the bottom of a downrule between articles.
+%    \begin{macrocode}
+\newlength{\downrulebottom}\setlength{\downrulebottom}{0.25in}
+%    \end{macrocode}
+%
+% \DescribeMacro{alleyright}
+% |\alleyright| is the space of an alley placed to the right of a downrule
+% between articles.
+%    \begin{macrocode}
+\newlength{\alleyright}\setlength{\alleyright}{0.06in}
+%    \end{macrocode}
+%
+% Aside: Unsure if \textit{siderule} is the correct term;
+% vertical space between articles is common in newspaper layouts but
+% not often talked about; most references I've seen just call any
+% horizontal line a ``rule''. Here we need to be specific about rules
+% in an alley between articles, so we'll stick with it for now.
+%
+% \DescribeMacro{alleytop}
+% |\alleytop| is the space of an alley placed to the top a siderule
+% between articles.
+%    \begin{macrocode}
+\newlength{\alleytop}\setlength{\alleytop}{0.06in}
+%    \end{macrocode}
+%
+% \DescribeMacro{siderulethick}
+% |\siderulethick| is the thickness of a siderule between articles.
+%    \begin{macrocode}
+\newlength{\siderulethick}\setlength{\siderulethick}{0.005in}
+%    \end{macrocode}
+%
+% \DescribeMacro{sideruleleft}
+% |\sideruleleft| is the gap at the left of a siderule between articles.
+%    \begin{macrocode}
+\newlength{\sideruleleft}\setlength{\sideruleleft}{0.25in}
+%    \end{macrocode}
+%
+% \DescribeMacro{siderulerright}
+% |\siderulelright| is the gap at the bottom of a siderule between articles.
+%    \begin{macrocode}
+\newlength{\sideruleright}\setlength{\sideruleright}{0.25in}
+%    \end{macrocode}
+%
+% \DescribeMacro{alleybottom}
+% |\alleybottom| is the space of an alley placed to the bottom of a siderule
+% between articles.
+%    \begin{macrocode}
+\newlength{\alleybottom}\setlength{\alleybottom}{0.06in}
+%    \end{macrocode}
+%
+% \begin{macro}{\newscolwidth} 
+% \begin{macro}{\newsartwidth} 
+%   |\newscolwidth| (length) is the width of a column including
+%   gutters/alleys.
+%   It is set to 1.5" by default, but can be modified before an |\article|
+%   is included to change the size of that article. TODO: test me.
+%
+%   |\newsartwidth| (length) is set automatically to the width of the article
+%   currently being typeset, up to the current column. This can be
+%   used to place dynamically-sized elements within an article;
+%   however, it will be larger than the current |\newscolwidth| if the
+%   article has multiple columns. TODO: This should really be the full
+%   article width, and we should use an @ length internally
+%
+%    \begin{macrocode}
+\newlength{\newscolwidth}
+\setlength{\newscolwidth}{1.5in}
+\newlength{\newsartwidth}
+%    \end{macrocode}
+% \end{macro}
+% \end{macro}
+%
+% \begin{macro}{rjl@output@headlines@common}
+% This routine outputs the headlines.
+%
+% It takes no parameters, but experts |\theheadline| and |\thesubhead|
+% to be set.
+% 
+% We also define \DescribeMacro{\rjl@junkbox} a box register to hold
+% the subheadline. This is so we can discard it without adding extra
+% |\par|s (which take space) if it is empty.
+%
+% The subheadline is always rendered, but if it produces a box of 0pt
+% \textit{height} or \textit{width} then it will not be allocated any
+% space.
+%    \begin{macrocode}
+\newbox\rjl@junkbox
+\newcommand{\rjl@output@headlines@common}{%
+  \vspace*{\alleytop}%
+  \vspace*{\siderulethick}%
+  \vspace*{\alleybottom}%
+  \headline{\theheadline}%
+  \sbox{\rjl@junkbox}{\subheadline{\thesubhead}}%
+  \ifdim\ht\rjl@junkbox=0pt%
+  \else%
+  \ifdim\wd\rjl@junkbox=0pt%
+  \else%
+  \usebox{\rjl@junkbox}%
+  \fi\fi%
+}
+%    \end{macrocode}
+% \end{macro}
+% 
+% \begin{macro}{rjl@output@article@common}
+% This common routine typesets the current article, setting
+% |\colmnsep|.
+%
+% It takes no parameters, but experts
+% |\rjl@numcols| to be set.
+%
+% It is called by both definitions of |\rjl@autput@article|, so to
+% ensure that the articles are output at the same dimensions as they
+% are measured.
+%
+%    \begin{macrocode}
+\newcommand{\rjl@output@article@common}{%
+  \rjl@output@headlines@common%
+  \noindent%
+  \ifthenelse{\equal{\rjl@numcols}{1}}{%
+    \input{\theartfile}%
+  }{%
+    \setlength{\columnsep}{\dimexpr\alleyleft+\alleyright+\downrulethick\relax}%
+    \begin{multicols}{\rjl@numcols}%
+      \input{\theartfile}%
+    \end{multicols}%
+  }%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{rjl@col@count}
+% The |rjl@col@count| counter is used to iterate over the various
+% options for the number of columns when sizing the articles.
+%
+% It is also used when outputting downrules within an article.
+%    \begin{macrocode}
+\newcounter{rjl@col@count}
+%    \end{macrocode}
+% \end{macro}
+%
+% \subsection{Modes of operation}
+%
+% This |\@ifundefined| splits the class into two distinct personalities.
+% The first time we run, we output the size of the articles at various
+% different widths to the log. This is read by the calling C++
+% program, which in turn generates a |.lay| layout file.
+% The else case assumes that the |.lay| file has been generated, and
+% proceeds to simply typeset the newspaper with the given dimensions.
+%
+%    \begin{macrocode}
+\@ifundefined{rjl@dofinal}{%
+%    \end{macrocode}
+%
+% \subsection{Article Sizing Mode}
+%
+% \DescribeMacro{\@rjl@realvsize}
+% This length is used internally to save and restore the page size when
+% switching between output modes.
+%    \begin{macrocode}
+\newlength{\@rjl@realvsize}
+%    \end{macrocode}
+%
+% \begin{macro}{\rjl@process@article}
+%
+% This is called after every |\article|.
+% In this personality, it determines and output the
+% size of the article when set at different widths.
+%
+%% eg with 2 columns:
+%%% <alleyright>column1<alleyleft><downrulethik><alleyright><column2><alleyleft>
+%    \begin{macrocode}
+\newcommand{\rjl@process@article}{
+  \stepcounter{rjl@maxcols}
+  \setlength{\newsartwidth}{\dimexpr\newscolwidth-\alleyleft-\alleyright\relax}
+  \forloop{rjl@col@count}{1}{\value{rjl@col@count}<\value{rjl@maxcols}}{
+    \ifthenelse{\value{rjl@mincols} > \value{rjl@col@count}}{}{
+      \xdef\rjl@numcols{\therjl@col@count}
+      \rjl@output@article
+    }
+    \addtolength{\newsartwidth}{\dimexpr\newscolwidth-\alleyleft-\alleyright-\downrulethick\relax}
+  }
+  \addtocounter{rjl@maxcols}{-1}
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{environment}{newspaper}
+%   |newspaper| takes no arguments.
+%
+%   The output routine is changed to \@rjl@outgetheight, which
+%   captures each article in turn. The initial page width and height
+%   are captured, and restored at the end of the environment. This
+%   accommodates the |article| environment, which changes the page
+%   sizes as seen by the page builder.
+%
+%   At the start of the environment, we lay out the title, then
+%   output the page size (minus the headline's height) for the C++
+%   code to read in.
+%    \begin{macrocode}
+\newenvironment{newspaper}{
+  \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}%
+  \addtolength{\parskip}{\smallskipamount}% depends on font size
+  \sbox{\rjl@junkbox}{\maketitle\mbox{end of title}}
+  \setlength{\rjl@tmplen}{\dimexpr\paperheight -\ht\rjl@junkbox -\dp\rjl@junkbox \relax}
+  \typeout{PAGESIZE: \the\paperwidth,\the\rjl@tmplen}
+  \setlength{\@rjl@realvsize}{\vsize}
+  \output{\rjl@outgetheight}
+}{
+  \global\let\rjlnumcols\relax
+  \setlength{\vsize}{\@rjl@realvsize}
+}
+\newlength{\rjl@tmplen}
+%    \end{macrocode}
+% \end{environment}
+% 
+% 
+% \begin{macro}{rjl@output@article}
+% \marg{columns}
+%   The |rjl@output@article| macro is where the main input work is done.
+%   
+%   The \TeX primitives |\hsize| and |\vsize| are set to a page size of
+%   the width of |columns| columns by |\maxdimen|, which effectively tells the
+%   page builder to build a single page as large as it can, at a width
+%   of |\hsize|. The output mode registered in the |newspaper|
+%   environment then takes care of cutting and pasting this text to form
+%   the newspaper itself.
+%
+%   At the end of the |article|, a |\par| is used to enter vertical mode
+%   mode (committing any text, graphics or maths to the current
+%   paragraph), then an |\eject| is used to force the output routine
+%   to be called.
+%    \begin{macrocode}
+\newcommand{\rjl@output@article}{
+  \global\setlength{\hsize}{\dimexpr\newsartwidth-\alleyleft-\alleyright\relax}
+  \setlength{\vsize}{\maxdimen}
+  \parbox[t]{\dimexpr\newsartwidth-\alleyleft-\alleyright\relax}{%
+    \rjl@output@article@common%
+  }
+  \mbox{\textbf{ENDOFART}} % sets the depth of the box
+  \eject
+}
+%    \end{macrocode}
+% \end{macro}
+% 
+%
+% \DescribeMacro{\rjl@outgetheight} Gets the height of an output page
+% and sets it somehow. I have no idea how mixing \TeX's |\global|
+% with \LaTeX's |\setlength| works, but it does\dots
+%
+% This is mostly plain \TeX\ as there aren't many equivalent \LaTeX
+% \textbackslash box commands. First, we |\unvbox| the output box~255 into a junk
+% box; this uses up box~255 to maintain the output routine's sanity
+% check, discarding the entire output, and also strips any ``discardable
+% space'' from the end of the page added by the |\eject|.
+%
+% Then, we can simply measure the length of the junk box to get the page
+% height, which is output to the C++ program using |\typeout|.
+%    \begin{macrocode}
+\newcommand{\rjl@outgetheight}{%
+  \setbox\rjl@junkbox\vbox{\unvbox\@cclv} %
+  \typeout{COLS,WIDTH,HEIGHT,FILE: \rjl@numcols,\the\newsartwidth,\the\ht\rjl@junkbox,\theartfile}%
+}
+%    \end{macrocode}
+%
+%
+%
+% \DescribeMacro{\@rjl@output@art@tmp}
+% \DescribeMacro{\@rjl@junkbox}
+%   Box registers are allocated for use by the output routine.
+%
+%   |\@rjl@output@art@tmp| is used to store a temporary copy of the
+%   entire typeset article in order to work out the optimal headline
+%   width.
+%
+%   |\rjl@junkbox| is used to store the entire article supplied to the output
+%   routine, so we can measure it's height.
+%    \begin{macrocode}
+\newbox\@rjl@output@art@tmp
+\newbox\rjl@junkbox
+%    \end{macrocode}
+%
+%% % \begin{macro}{\@rjl@output}
+%% %   \subsubsection*{The Output routine}
+%% %   
+%% %   Each article is set with |\vbox| at to the maximum size that
+%% %   \TeX{} can process~(16384pt, around 5 metres, or nearly 19 feet),
+%% %   so that the article is set in essentially one long column. Each
+%% %   article also ends with ends with |\eject|, which causes the output
+%% %   routine to be called.
+%% %
+%% %   This means that the the input to the output routine is the entire
+%% %   article in a box of the correct width, at around 5m tall,
+%% %   regardless of the amount of input text.
+%% %
+%% %   TODO: This is a very cut-down version of rjlnewsp version 2, which
+%% %   did it better as it laid out the article properly into columns to
+%% %   size it. What we are getting the size of here is a multi-column
+%% %   spanning article (which may still be a useful option).
+%% %
+%% %    \begin{macrocode}
+%% \newcommand{\@rjl@output}{
+%%   \setlength{\hfuzz}{\maxdimen} % no overfull box warnings during sizing; only affects within this group
+%%   \setbox\@rjl@output@art@tmp \vbox{\copy\@cclv}
+%%   \typeout{HEIGHT \the\ht\@rjl@output@art@tmp}
+%%   \setbox\@cclv\vbox{}
+%% }
+%% %    \end{macrocode}
+%% % \end{macro}
+% 
+%    \begin{macrocode}
+}{%
+\typeout{Generating the final document}%
+%    \end{macrocode}
+%
+% \subsection{Generating the final document}
+% The above pair of braces match the |\@ifundefined| just after
+% |\ProcessPackageOptions|.
+% We now begin the second identity of this document class; the form
+% that outputs the final page.
+%
+% Our only dependency is |eso-pic|, which is used by |rjl@xy|. It's
+% likely this will be taken out in future and an |\output|-hook used
+% instead; however, it will be important to maintain compatibility
+% with existing packages that provide an |\output|-hook.
+%
+%    \begin{macrocode}
+\RequirePackage{eso-pic}
+%    \end{macrocode}
+%
+%
+% We assume there is a file named |\jobname.lay| which contains all
+% the layout instructions. All we need to do is to define the commands
+% used in this file for the duration of the |newspaper| environment,
+% read in the articles, then at the end read in |\jobname.lay|.
+%
+% There are a number of solutions for this. I think I'm going to try
+% first the |everypage| package as defined at
+% |https://tex.stackexchange.com/questions/169808/what-are-the-ways-to-position-things-absolutely-on-the-page\5F#answer-169831|
+%
+%
+% When processing articles, we need to store the layout information
+% for later use in typesetting.
+% We define a new counter, |rjl@art@counter|, which stores the number
+% of articles processed.
+% For each article, we define new commands |\rjl@headline|\textit{N},
+% |\rjl@subhead|\textit{N} and |\rjl@artfile|\textit{N} to store the
+% variables for later use.
+% This is done using \TeX primitives for brevity, and for better control over
+% where things are expanded.
+%    \begin{macrocode}
+\newcounter{rjl@art@counter}%
+\setcounter{rjl@art@counter}{0}%
+\newcommand{\rjl@process@article}{%
+  \edef\rjl@theartid{\arabic{rjl@art@counter}}%
+  \expandafter\xdef\csname rjl@headline\rjl@theartid\endcsname{\theheadline}%
+  \expandafter\xdef\csname rjl@subhead\rjl@theartid\endcsname{\thesubhead}%
+  \expandafter\xdef\csname rjl@artfile\rjl@theartid\endcsname{\theartfile}%
+  \stepcounter{rjl@art@counter}% 0-based counter
+}
+%    \end{macrocode}
+%
+% \subsection{Coordinate System}
+% The coordinates of the output are given as $x$ and $y$ coordinates,
+% with the origin placed at the top of the article grid, just below
+% the heading, to the right of the left margin. The positive $x$
+% dimension is to the right and the positive $y$ dimension is down.
+%
+% Thus anything with a negative $x$ dimension will be off the page,
+% and anything with a negative $y$ dimension will be overtyping the
+% title.
+%
+% \DescribeMacro{\rjl@pageTopMargin}
+% This length is set to a negative value equal to $0-h$, where $h$ is
+% the height of the title box, including its depth. This is used by
+% |rjl@xy| to position elements relative to the bottom of the title,
+% which is the coordinate system of the layout file. It is set to
+% |0pt| here and decreased once the title is laid out.
+%    \begin{macrocode}
+\newlength{\rjl@pageTopMargin}
+\setlength{\rjl@pageTopMargin}{0in}
+%    \end{macrocode}
+%
+% \begin{macro}{\rjl@xy}
+% \oarg{pre-tokens}
+% \marg{x}
+% \marg{y}
+% \marg{macro}
+% Outputs the contents of \marg{macro} at the coordinates
+% \marg{x},\marg{y} during the output routine. The \oarg{pre-tokens},
+% if any, are expanded during the output routine before the
+% coordinates are evaluated; this is useful to call the macro
+% repeatedly using different values in a length register; because the
+% output is delayed until the |\shipout| runs, the registers end up
+% with the same value, so this parameter can be used to update the
+% register's value before each macro call.
+%
+%    \begin{macrocode}
+\newcommand{\rjl@xy}[4][]{%
+ \AddToShipoutPictureFG*{\AtPageUpperLeft{\smash{#1}%
+     \hspace*{\dimexpr #2\relax}% NB: starts at \hoffset
+  \raisebox{\dimexpr\rjl@pageTopMargin-#3\relax}{#4}}}}% NB: starts at \voffset
+%    \end{macrocode}
+% \end{macro}
+%
+% The |eso-pic| package is used to define commands similar to
+% the |\atxy| command described by this
+% example\footnote{|https://tex.stackexchange.com/questions/169808/what-are-the-ways-to-position-things-absolutely-on-the-page\#answer-169831|}.
+% The |everypage| didn't work out; it shifted everything an inch to
+% the right; unsure why. This soluction was based on this example\footnote{https://tex.stackexchange.com/questions/30177/how-can-i-add-text-in-the-top-right-corner-of-a-page-without-using-fancyhdr\#answer-30185}.
+%
+% 3 commands are defined in this way:
+% \begin{itemize}
+% \item |\halley| typesets a horizontal rule. Arguments are (all as
+% length units):
+%  \begin{itemize}
+%  \item Y coordinate of alley
+%  \item X coordinate of left end
+%  \item X width
+%  \end{itemize}
+% \item |\valley| typesets a downrule. Arguments are (all as
+% length units):
+%  \begin{itemize}
+%  \item X coordinate of alley
+%  \item Y coordinate of bottom end
+%  \item Y height
+%  \end{itemize}
+% \item |\doarticle| typeset the article contents. Arguments are:
+%  \begin{itemize}
+%  \item article ID (numeric counter)
+%  \item X coordinate of left edge (length unit)
+%  \item Y coordinate of top edge (length unit)
+%  \item Width (length unit)
+%  \item Height in points (length unit)
+%  \item Number of columns
+%  \end{itemize}
+% \end{itemize}
+%
+% You may be wondering why |\valley| refers to the bottom of the rule
+% instead of the top. This is because |\rule| creates a line extending
+% above the given coordinate, and it's easier to write out the bottom
+% edge than to calculate the length in \TeX.
+%
+% Note to self: \cs{smash} taxes one argument, retains its ink, but
+% sets the box component to 0-sized, thus allowing overtyping,
+% according to the description at
+% \texttt{https://www.tug.org/TUGboat/tb22-4/tb72perlS.pdf}. However,
+% the \TeX Book says that, while it removes any depth, it only
+% truncates the height to the current font size; it's intended for
+% controlling the vertical layout of lines that contain items that
+% extend above or below the normal line hight.
+%
+% We also add a tiny rubber length to |\baselineskip| and a slightly
+% bigger one to |\parskip|; these help |multicol| to balance the last
+% column. Note that |\parskip| default to |0pt plus 1pt| in |article|,
+% but I found that more is often needed to help balance columns.
+%    \begin{macrocode}
+\newenvironment{newspaper}{%
+  \setlength{\hsize}{\paperwidth}%
+  \setlength{\linewidth}{\paperwidth}%
+  \setlength{\vsize}{\paperheight}%
+  \setlength{\oddsidemargin}{0pt}%
+  \setlength{\evensidemargin}{0pt}%
+  \setlength{\leftmargin}{0pt}%
+  \setlength{\rightmargin}{0pt}%
+  \setlength{\topmargin}{0pt}%
+  \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}%
+  \addtolength{\parskip}{\smallskipamount}% depends on font size
+}{%
+  \input{\jobname.lay}
+  \sbox{\rjl@junkbox}{\maketitle\mbox{end of title}} % TODO: We do again without the mbox in a few lines. Why?
+  \rjl@calcheadheight
+  \global\addtolength{\rjl@pageTopMargin}{\dimexpr0pt - \ht\rjl@junkbox -\dp\rjl@junkbox \relax}%
+  \sbox{\rjl@junkbox}{\maketitle}%
+  \rjl@xy{0pt}{\dimexpr0pt - \dp\rjl@junkbox\relax}{\usebox{\rjl@junkbox}}%
+%    \end{macrocode}
+% The header boxes aren't put out by |\maketitle| as they depend on
+% the size of the title box.
+% Instead, we simply output the boxes half-way down the title page,
+% and indented by the width of the boxes.
+%    \begin{macrocode}
+  \ifdefined\theLeftBoxText%
+  \rjl@xy{\dimexpr \rjl@headheight/2 \relax}{0pt}{
+    \rjl@doheadbox{\theLeftBoxWidth}{\theLeftBoxHeight}{\theLeftBoxText}
+  }
+  \fi%
+  \ifdefined\theRightBoxText%
+  \rjl@xy{\dimexpr \paperwidth - \theRightBoxWidth - \rjl@headheight - 2\hoffset \relax}{0pt}{%
+    \rjl@doheadbox{\theRightBoxWidth}{\theRightBoxHeight}{\theRightBoxText}
+  }%
+  \fi%
+  ~\eject % force page output; the actual content is done in page hooks.
+}%
+\newcommand{\rjl@doheadbox}[3]{
+  \vspace{\dimexpr\voffset-\rjl@pageTopMargin\relax}\par
+  \noindent\vbox to \dimexpr\voffset-\rjl@pageTopMargin\relax{ % pageTopMargin is negated and doesn't include voffset (which we need to for centring to look correct)
+    \vspace{0pt} % 0-length line as aligns to baseline
+    \vfill % center
+    \typeout{IN LEN: \the\hoffset,\the\rjl@headheight,\the\paperwidth,\the\textwidth}
+    \noindent\fbox{\parbox[c][#2][c]{#1}{#3}}%
+    \vfill % center
+    \vspace{0pt} % 0-length depth to box
+  }
+}
+\newcommand{\halley}[3]{%
+  \rjl@xy{%
+    \dimexpr #2+\sideruleleft\relax}{#1}{\noindent\rule{%
+      \dimexpr #3-\sideruleleft-\sideruleright\relax%
+    }{\siderulethick}}}%
+%    \end{macrocode}
+% |\rjl@tmplen| is used to hold the length of each vertical alley. This is a
+% workaround to the fact that the second argument of |\rjl@xy| is
+% evaluated in horizontal mode, so |\dimexpr| can't be used
+% there. Instead, the length is calculated in the first argument (which is
+% evaluated first) and stored in this macro. We can't calculate it
+% outside the macro (without a lot of messy |\expandafter| tags)
+% because the processing of the |\rjl@xy| arguments are deferred until
+% the page is laid out, so they'd all end up at the same width.
+% There's probably a neater solution that could be obtained by
+% rewriting |\rjl@xy| to expand its arguments immedately somehow.
+%    \begin{macrocode}
+\newlength{\rjl@parindent}
+\newlength{\rjl@parskip}
+\newlength{\rjl@baselineskip}
+\newlength{\rjl@tmplen}
+\newcommand{\rjl@downrule}[1]{\noindent\rule{\downrulethick}{#1}}
+\newcommand{\valley}[3]{%
+  \rjl@xy[%
+    \setlength{\rjl@tmplen}{\dimexpr #3-\downruletop-\downrulebottom\relax}% done here as global and evaled at pageout
+  ]{#1}{%
+    \dimexpr #2-\downrulebottom\relax}{\rjl@downrule{%{\noindent\rule{\downrulethick}{%
+      \rjl@tmplen}}
+}%
+%    \end{macrocode}
+%
+% Note that some dimensions, like |\parindent|, need to be respecified
+% when read in the output routine, or they default to |0.0pt|.
+%    \begin{macrocode}
+\newlength{\foolen}
+\newcommand{\doarticle}[6]{%
+  \setlength{\rjl@parindent}{\parindent}
+  \setlength{\rjl@parskip}{\parskip}
+  \setlength{\rjl@baselineskip}{\baselineskip}
+  \rjl@xy{\dimexpr #2+\alleyright\relax}{\dimexpr #3+\alleybottom\relax}{%
+    \parbox[t][\dimexpr #5-\alleytop-\alleybottom\relax][s]{%
+      \dimexpr #4-\alleytop-\alleybottom\relax}{%
+      \setlength{\parindent}{\rjl@parindent}%
+      \setlength{\parskip}{\rjl@parskip}%
+      \setlength{\baselineskip}{\rjl@baselineskip}%
+      \renewcommand{\theheadline}{\csname rjl@headline#1\endcsname}%
+      \renewcommand{\thesubhead}{\csname rjl@subhead#1\endcsname}%
+      \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}%
+      \xdef\rjl@numcols{#6}%
+      \rjl@output@article@common%
+      \expandafter\let\csname rjl@headline#1\endcsname\relax%
+      \expandafter\let\csname rjl@subhead#1\endcsname\relax%
+      \expandafter\let\csname rjl@artfile#1\endcsname\relax%
+    }}%
+%    \end{macrocode}
+%
+% intra-article downrules. These are currently set in the same way as
+% normal downrules, but between article columns. The article has |#6|
+% columns, so we need to place one at position $x_n = \#2 +
+% \frac{\#4}{n+1} \forall n \in \{ 1 \mbox{..} (\#6-1) \}$
+%
+% This turns out to be quite fiddly, as we must past the correct
+% values to the |\rjl@xy| macro, as it literally passes its values to
+% the callback. This means we can't use a length register (like
+% |\rjl@tmplen|) and pass it directly, as it could be modified several
+% times before the page is output.
+% Instead, we reimplement the downrule calculation here, with one box
+% using \cs{hspace} struts to position the downrules.
+%    \begin{macrocode}
+  \rjl@xy[\rjl@calcheadheight]{%
+    #2}{% we take \alleyright out because it's already in the column sep
+    \dimexpr #3+#5-\downrulebottom\relax}{%
+    \forloop{rjl@col@count}{1}{\value{rjl@col@count}<#6}{%
+      \hspace{\dimexpr #4/#6\relax}%
+      \rjl@downrule{\dimexpr #5 - \downruletop - \downrulebottom -\rjl@headheight -\alleybottom -\alleytop \relax}%
+    }%
+  }%
+}
+%    \end{macrocode}
+%
+% End of the giant |\@ifundefined| that switches between sizing
+% and layout mode.
+%    \begin{macrocode}
+}
+%    \end{macrocode}
+%
+% \begin{macro}{\rjl@calcheadheight}
+%
+% this sets the length |\rjl@headheight| to
+% the height of the headline, which is used when typesetting each
+% article to set the length of the intrarticle downrules, so they
+% don't overtype the heading.
+%
+%    \begin{macrocode}
+\newcommand{\rjl@calcheadheight}{%
+  \sbox{\rjl@headbox}{%
+    \parbox{\textwidth}{%
+      \rjl@output@headlines@common%
+    }%
+  }%
+  \global\setlength{\rjl@headheight}{\ht\rjl@headbox}%
+  \global\addtolength{\rjl@headheight}{\dp\rjl@headbox}%
+}
+\newsavebox\rjl@headbox
+\newlength{\rjl@headheight}
+\setlength{\rjl@headheight}{0pt}
+%    \end{macrocode}
+% \end{macro}
+%
+% \section{Typesetting the Title}
+%
+% Newspaper tend to use banner titles; that is, the top few inches of
+% the first page is wholly given over to the title. There may also be
+% headers and footers on subsequent pages, for footnotes, page
+% numbers, repeating the name of the newspaper and so on.
+%
+% For now, we will define various title-like parameters, each with two
+% macros. The macro |\foo| will take one parameter, set to the tokens
+% to use as that value, and the macro |\thefoo| will produce this
+% value. The exception to this is |\title| and |\@title| which are
+% predefined by \LaTeX.
+%
+% The command |\maketitle| will produce the title; it will be called
+% automatically.
+%
+% We do not define |\title|; this is given in |latex.ltx|
+%    \begin{macrocode}
+\gdef\@title{No title given}
+%\renewcommand{\title}[1]{\renewcommand{\@title}{#1}}
+%
+\newcommand{\theedition}{Use ``\textbackslash edition'' to set the edition}
+\newcommand{\edition}[1]{\renewcommand{\theedition}{#1}}
+%
+\newcommand{\thereleasedate}{Use ``\textbackslash releasedate'' to set the releasedate}
+\newcommand{\releasedate}[1]{\renewcommand{\thereleasedate}{#1}}
+%
+\newcommand{\theeditor}{Use ``\textbackslash editor'' to set the editor}
+\newcommand{\editor}[1]{\renewcommand{\theeditor}{#1}}
+%
+\newcommand{\theprice}{Use ``\textbackslash price'' to set the price text}
+\newcommand{\price}[1]{\renewcommand{\theprice}{#1}}
+%
+\newcommand{\theIssuestring}{Issue \#\theedition, \thereleasedate}
+%
+\newcommand{\theFFooter}{}
+\newcommand{\firstfooter}[1]{\renewcommand{\theFFooter}{#1}}
+\newcommand{\theFooter}{}
+\newcommand{\pagefooter}[1]{\renewcommand{\theFooter}{#1}}
+\newcommand{\theHeader}{}
+\newcommand{\pageheader}[1]{\renewcommand{\theHeader}{#1}}
+%
+\newcommand{\theAddress}{  \textbf{Newsdesk} \par Use ``\textbackslash address'' to set your contact details}
+\newcommand{\address}[1]{\renewcommand{\theAddress}{#1}}
+%
+\newcommand{\theSubtitle}{}
+\newcommand{\subtitle}[1]{\renewcommand{\theSubtitle}{#1}}
+%
+\newcommand{\copyr}[1]{\newcommand{\theCopyright}{#1}}
+\newcommand{\copystring}{% NB: this copyright notice is designed to be legally valid in as many
+% countries as possible.
+  \ifdefined\theCopyright{Copyright \copyright\ \thereleasedate\ \theCopyright, All Right Reserved}\fi%
+}
+%
+\newcommand{\theLeftBoxHeight}{38pt}
+\newcommand{\theLeftBoxWidth}{1in}
+\newcommand{\leftboxText}[1]{\newcommand{\theLeftBoxText}{#1}}
+%
+\newcommand{\theRightBoxHeight}{38pt}
+\newcommand{\theRightBoxWidth}{1in}
+\newcommand{\rightboxText}[1]{\newcommand{\theRightBoxText}{#1}}
+%
+\newlength{\titlemargin}\setlength{\titlemargin}{5pt}
+\newlength{\titlelineskip}\setlength{\titlelineskip}{5pt}
+% maketitle must return a box:
+\newcommand{\maketitle}{%
+  \parbox{\textwidth}{%
+    \vspace*{\titlelineskip}
+    \centerline{\Huge \@title}%
+    \vspace*{\titlelineskip}%
+    \ifthenelse{\equal{\theSubtitle}{}}{}{\vspace{2pt}\centerline{\theSubtitle}\vspace{\titlelineskip}}%
+    \centerline{\theIssuestring}%
+    \vspace*{\titlelineskip}%
+    \raisebox{0pt}[0pt][0pt]{\centerline{Editor: \theeditor}}%
+    \llap{\raisebox{0pt}[0pt][0pt]{\parbox{\textwidth}{\hspace*{\titlemargin}\copystring\hfill}}}%
+    \llap{\raisebox{0pt}[0pt][0pt]{\parbox{\textwidth}{\hfill\theprice\hphantom{\hspace*{\titlemargin}}}}}%
+    \vspace*{\titlelineskip}%
+  }%
+}
+%    \end{macrocode}
+% \subsection{Postamble}
+% Tidy up: make @ not a letter again
+%    \begin{macrocode}
+\makeatother
+%    \end{macrocode}
+% 
+%
+% \Finale
+\endinput
+
+% \endinput
+% Local Variables: 
+% mode: doctex
+% TeX-master: "test.tex"
+% End: 

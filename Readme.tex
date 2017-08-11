@@ -1,0 +1,380 @@
+\documentclass[a4paper]{scrartcl}
+
+\usepackage[british]{babel}
+
+\newcommand{\cpp}{\mbox{C\texttt{++}}}
+
+\begin{document}
+
+\title{Typesetting a newspaper}
+\author{Robert J Lee}
+\date{14\textsuperscript{th} June 2017}
+
+\maketitle
+
+\begin{abstract} Ths document describes a mechanism for typesetting a
+	newspaper page, together with problems found and workarounds in
+	\LaTeXe.
+\end{abstract}
+
+\section{Problem Statement}
+
+We have a page of known dimensions and text to set out on that page.
+The text takes the form of articles, each of which has a calcuable
+length in column inches, along with a headline and other titular
+information.
+
+Each article will be supplied as a separate file on the filesystem,
+which may be included into the document multiple times as needed. The
+\LaTeX\ document itself will contain an environment to typeset the
+newspaper, containing structered data with the articles to be
+imported, along with any required metadata. The work of typeseting the
+document will be performed in the closing of the environment.
+
+We are only considering a single page at this time (newssheets). This
+will be extended to allow multipage newspapers and other features in future.
+
+The aim of the algorithm is to fill the page as completely as
+possible, without overflowing the page and with as little blank space
+as possible.
+
+\section{Terminology}
+
+A \textit{newspaper} is the document we are typesetting.
+
+An \textit{article} is a sub-document consisting of a title, including
+headline, and potentially multiple paragraphs of text. No restrictions
+are placed on the content except that it is to be rendered as
+\LaTeX\ source and may be parsed multiple times during rendering.
+
+The \textit{editor} is the user of the program, who is assumed to have
+collected the articles and to have final responsibility for passing
+the finished design. This is considered to be synonymous with
+\textit{layout designer}
+
+\section{Research}
+
+It seems that, in the real world, newspaper editors start with a basic
+(if paramaterised) laout and then commission their authors to write
+articles to length, to fit the avaialble column inches given by the
+template. This bypasses the complexity of having to place
+arbitrary-length articles in a pleasing way.\footnote{\texttt{\tiny
+    https://tex.stackexchange.com/questions/49777/automated-newspaper-layout-with-tex-and-abroad}}
+
+One mitigation would be to allow variable-sized elements, such as
+photographs, that could adjust to fill the avaialable space.
+
+
+\section{Algorithm}
+
+The plan here is to fill the page as completely as possible. Each
+article will be typeset in a rectangular box, with a header containing
+the centered headline across the full width, and the article set
+underneath in columns.
+
+For future expansion, we might consider changing the number of columns
+in each article to adjust the space it takes up.
+
+We want to lay out the articles on the page such that no article needs
+a space that is not rectangular. We will prefer filled pages to
+less-filled pages --- which is to say, we want the whitespace to be in
+the heading --- but we discard solutions that overflow the page ---
+that is, there cannot be so much whitespace in the heading that the
+text is allowed to overflow onto the second page.
+
+\begin{enumerate}
+  \item Calculate the number of column inches in each article.
+    \subitem[*] This is basically a solved problem. We set the page
+    width to single-column width, maximum length with no margins,
+    \verb!\include! the article text, and override the \verb!\shipout!
+    routine to strip rubber spaces, store the length of the article,
+    and then discard the typeset page. This algorithm is run using
+    \verb!\eject! to force an immediate \verb!\shipout!.
+    \subitem[*] A limitation of this approach is that an article that
+    will not fit on a single page will exceed the maximium page length
+    and return a short count. This is generally not seen on
+    newspapers, as such an article would likely fill multiple sheets.
+    \subitem[*] A second limitation is that the length may be slightly
+    inaccurate due to dynamic content, such as forward-references
+    whose length is unknown. In this case, there may be a difference
+    equal to 1--2 lines in the calculated length. In general, we
+    expect \LaTeX\ to compensate for this by overfilling or
+    underfilling the \verb!vbox!, and the editor can adjust this
+    manually, by editing the text or overriding the length in the
+    document metadata.
+    \item Let $N_C$ be the whole number of columns into which the
+      pages' width can be divided, $W_C$ be the width of an individual
+      column
+    \item Next, the vertical space of each heading is determined at
+      different possible column widths. For each article:
+      \subitem For $i$ from $1$ to $N_C$:
+      \subsubitem Let $W_i$ be the width of $i$ columns, including alleys.
+      \subsubitem Set the page width to $i \times w_i$ and repeat the
+      process for measuring the article length, but this time output
+      only the header.
+      \subsubitem Let $L_hi$ be the length of the header at a width of $i$ columns.
+    \item Now we have the length of each heading and article, let's
+      try and fill the area of the page. For each artcile $a$:
+      \subitem For $i$ from $1$ to $N_C$: \subitem Calculate $A_ai$,
+      the area of the page taken up by the article set at this column
+      width, excluding any alleys on the sides or footer of the
+      article. To simplify the calculations later, this will be
+      calculated in column inches, as $A_ai = \frac{L_hi}{i} + i L_ai$
+    \item We then have a matrix of values $A_ai$, in column inches,
+      for all articles $a$ for all possible column-widths $i$.
+    \item We then choose a value of $i$ for each article $a$, such
+      that the total area is as close as possible to, but not
+      exceeding, the page area. We exclude from consideration any
+      articles whose length at column width $i$ would be longer that
+      the available area on the page.
+    \item If there is no solution at this stage, output an error. The
+      editor can remove or shorten articles and try the whole process
+      again.
+    \item So we know which articles to output and the number of
+      columns we'd like. The next stage is to work out how the
+      rectangles will fit onto the page. We sort the articles by the
+      number of column inches, largest first.
+\end{enumerate}
+
+The simplest method to fill the page then becomes worst-fit. We keep
+track of the contiguous allocated space, and fit each unplaced item on
+the page, always into the largest contiguous area. By placing the
+smallest articles last, the chances of success are maximised. We can
+allow an article to be placed into an area that's a few points too
+small, assuming a small rubber length in the interline spacing.
+
+It's possible this may produce no result. In this case, we can try
+several other algorithms:
+
+\begin{itemize}
+  \item shuffling the articles and trying to place them again,
+    although the chances of success are reduced.
+  \item trying a best-fit algorithm. This is very likely to work in
+    the case where the editor has chosen the articles by length to fit
+    the page.
+\end{itemize}
+
+It's possible this may produce no result. In this case, we need to try
+a more thorough algorithm that allows for the breaking of articles.
+
+In the short term, we'll just output an error describing the best fit
+that we were able to find.
+
+\section*{Limitations}
+
+The above approach is not guaranteed to fill the page, as the article
+size is settled before placement can begin. This means that spaces may
+be unavailable for the determined shapes of articles.
+
+For a much reduced example, considering a $3 \times 3$ ($\mbox{width}
+\times \mbox{height}$) grid of paper; two articles sized at $1 \times 3$ and
+$3 \times 2$ would fill the area of the page exactly, but after placing the
+$3 \times 2$ article, only a $3 \times 1$ row at the bottom of the page remains,
+which will not acommodate the $1 \times 3$ columnar article; it would have to
+be split across three columns, which would affect the space given to
+the header.
+
+In this example, it may be better to lay out the $1 \times 3$ article into
+the $3 \times 1$ column and split the article onto two pages. This decision
+could be done by the editor with sufficient understanding of the space
+avaialble. Alternatively, the column could be split paste-up style,
+with the heading constrained to the first column to preserve the
+spacing. Again, it should be the editor's decision if this should be
+permitted.
+
+Another problem is where the space is available in a non-rectangular
+block: Two filled articles may allow insufficient space between them
+for the final article to be placed, even though sufficient contiguous
+space is avaialble. In this case, a previously-placed article must be
+moved to cause the space to become rectangular (if possible), or the
+article may be flowed around the available space (if permitted by the
+editor).
+
+Another problem is if the space on the page is discontiguous. It is
+not customary to break apart an article where it continues elsewhere
+on the same page, although ``continued on page~$N$\dots'' is a common
+device to increase the number of headlines on the front page. So we
+must then look to move articles to free up the available space.
+
+
+\section{Alternative, Template-Based Approaches}
+
+The difficulty of any 2-dimensional layout alrogithm is that it is
+difficult to determine which layouts are most aesthetically pleasing
+to the reader.
+
+This limitation can be removed by the use of parameterised layouts.
+For example, a layout might stipulate that the page should allow two
+single-column articles on the leftmost and rightmost columns, a
+full-width image in the middle of the page, and further articles to be
+fit in the remaining space on the top and bottom. The editor would
+then need to provide two separate articles of the correct length for
+the side columns, while the computer could work out the vertical
+position of the image based on the length of the articles placed in
+the top and bottom columns.
+
+This could be achieved in a much more specific way, by allowing an
+editor to specify possible templates or to choose from a list.
+
+Alternatively, the editor could simply specify meta-data for each
+article, such as an affinity for a particular place on the page, an
+override for the number of columns, and/or an order for placement on
+the page. In this way, the editor is still asking the computer to lay
+out the page, but has far more control over the final outcome; this
+moves some of the responsibility for finding a correct and aesthetic
+design to the editor.
+
+
+It seems likely that a number of approaches could be used by a
+pluggable system of algorithms.
+
+\section{Problem: Breaking Articles into columns}
+
+This is a solved problem, but not as simple as described above.
+
+If the article is rectangular then it can be done simply by setting
+the article inside a balanced \verb!multicols! environment.
+
+Otherwise, there is a solution that involves modifying the input text
+to avoid the implicit horizontal space at the end of the paragraph; I
+wrote the \verb!rjldtp! package specifically to address this issue by
+injecting \TeX\ primitives.
+
+\section*{\cpp Proof-of-Concept Program}
+
+The \cpp proof-of-concept program\footnote{Distributed in the
+  ``layouttest'' directory.} was written to allow faster
+experimentation with layout algorithms than is possible by programming
+directly in \TeX.
+
+The \texttt{Page} class contains metadata for the page being typeset.
+\texttt{Article} contains basic metadata for an article, including
+size information.
+\texttt{layout::worstFit} supplies a basic worst-fit algorithm.
+
+As this document is written, the \texttt{main} method will add
+articles to the document, with each article having options for 1--5
+columns. We then calculate all permutations of all article options in
+order to determine the permutation that best fills the page without
+overflow; this is by far the slowest part of the program.
+
+The worst-fit algorithm is a simple implementation that keeps track of
+rectangular areas of free space, which are treated independently. If
+no solution can be found, backtracking is performed not on the fitment
+of pages onto the layout but on the permutations of the articles on
+the document.
+
+In practise, this appears to work fast enough in most cases.
+
+This could easily be improved by:
+
+\begin{itemize}
+\item Backtracking in article fitment (ie trying each article in the
+  second-worst placement and seeing if this improves the situation);
+\item Backtracking in the method by which free space is divided (this
+  is easy to do but not thorough)
+\item Looking at all corners for placement, not just the top-left
+  corner of the article placement;
+\item Considering ways to typeset articles that overflow more than one
+  adjacent free space (this would be more thorough but negate the
+  benefits of backtracking in the method by which free space is
+  divided).
+\end{itemize}
+
+In addition, affinity for a particular place could be included to
+particular articles, especially a main headline to be set top-left.
+
+The program makes no attempt to typeset headers and footers. These are
+assumed to be outwith the scope of the program, which deals only with
+the algorithm.
+
+Alleys are also ignored; these affect the algorithm in theory as they
+take space on the page; however, the space can generally be included
+in the size of the article, so any deviation from a perfect solution is
+expected to be small; therefore, the expense in time and program
+complexity of implementing alleys is not justified.
+
+\section*{Alley placement}
+
+Alleys are lines drawn between articles to separate them.
+
+Determining where alleys should be placed is not entirely trivial,
+because the alley lines do not draw to the full extent of the article size.
+
+It is hereby hypothesised that a alley should be interrupted by a gap
+at any corner of an article, regardless of the side of the article on
+which the alley resides. Therefore, it is not sufficient merely to
+place an article on the page, place its alleys and then place the
+adjacent articles; the size and length of the adjacent articles must
+be known when the alley is placed.
+
+\pagebreak[1]
+
+\begin{verbatim}
+  1234567
+1 +-+-+-+
+2 |A|B|C|
+3 +-+ | |
+4 | +-+ |
+5 |D|E+-+
+6 | +-+ |
+7 | |F|G|
+8 +-+-+-+
+\end{verbatim}
+
+This shows six articles in an offset $3\times 3$ grid.
+The ideal alleys would be:
+
+\begin{tabular}{r|c|l}
+Column & 1 & 2, 4--7 \\
+Column & 3 & 2, 5, 7 \\
+Column & 5 & 2--3, 4.5, 5.5, 7 \\
+Column & 7 & 2--4, 6--7 \\
+Row & 1 & 2, 4, 6 \\
+Row & 3 & 2 \\
+Row & 4 & 4 \\
+Row & 5 & 6 \\
+Row & 8 & 2, 4, 6
+\end{tabular}
+
+\section*{Thoughts on Further Development}
+
+Given the current state of the \cpp program, there are two different
+methods that could be employed going forward.
+
+The current program emits the paper coordinates for each article; we
+use this to typeset the articles in exact locations on the page. This
+has the advantage of more easily allowing for non-rectangular article
+layout in the future, but the disadvantage of having to calculate the
+exact positions of the alleys.
+
+The current algorithm works by dividing the page into rectilinear
+areas. It would be trivial to expose this part of the algorithm and
+emit a horizontal or vertical alley at each point where the
+whitespace is broken; we know at this point the size of the alley and
+whether there is another article from which to separate above or below
+the alley itself. This has the advantage of improving the layout for
+rectilinear articles, as rubber space can be used to allow the
+\TeX\ engine to optimally lay out the page. It has the disadvantage
+that this approach would be harder to generalise to non-rectilinear
+article layout.
+
+Even if we can preserve the encapsulation of the first method, with
+all the many benefits that encapsulation brings for maintainability,
+the fact that we could improve the page layout in the second method
+suggests that it should be retained as an option
+nonetheless. Unfortunately, if lines are to be placed in the alley
+then the length and size of all adjacent articles must be known before
+the alleys can be placed, which negates any optimisation obtained by
+this method.
+
+Thus type-safety wins again; a pluggable algorithm that outputs the
+article locations will be used, and the alleys will be retrofitted.
+
+\section*{Further Reading}
+
+ARC project\footnote{\texttt{\tiny
+    http://cgi.csc.liv.ac.uk/~epa/surveyhtml.html}} has a number of
+rectangle-packing algorithms.
+
+\end{document}
