@@ -1096,10 +1096,10 @@
   \addtolength{\parskip}{\smallskipamount}% depends on font size
 }{%
   \input{\jobname.lay}
-  \sbox{\rjl@junkbox}{\maketitle\mbox{end of title}} % TODO: We do again without the mbox in a few lines. Why?
+  \sbox{\rjl@junkbox}{\maketitle}%
   \rjl@calcheadheight
   \global\addtolength{\rjl@pageTopMargin}{\dimexpr0pt - \ht\rjl@junkbox -\dp\rjl@junkbox \relax}%
-  \sbox{\rjl@junkbox}{\maketitle}%
+  %\sbox{\rjl@junkbox}{\maketitle}%
   \rjl@xy{0pt}{\dimexpr0pt - \dp\rjl@junkbox\relax}{\usebox{\rjl@junkbox}}%
 %    \end{macrocode}
 % The header boxes aren't put out by |\maketitle| as they depend on
@@ -1164,7 +1164,6 @@
 % Note that some dimensions, like |\parindent|, need to be respecified
 % when read in the output routine, or they default to |0.0pt|.
 %    \begin{macrocode}
-\newlength{\foolen}
 \newcommand{\doarticle}[6]{%
   \setlength{\rjl@parindent}{\parindent}
   \setlength{\rjl@parskip}{\parskip}
