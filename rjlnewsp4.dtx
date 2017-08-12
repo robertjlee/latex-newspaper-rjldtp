@@ -427,10 +427,6 @@
 \@highpenalty 301
 %    \end{macrocode}
 %
-% Adjustments to look better in columnar text:
-%    \begin{macrocode}
-  \setlength\parskip{\smallskipamount}% depends on font size
-%    \end{macrocode}
 %
 %    \begin{macrocode}
 % \DescribeMacro{\theartfile}
@@ -746,11 +742,15 @@
 % ensure that the articles are output at the same dimensions as they
 % are measured.
 %
+% It modifies |\baselineskip| and |\parskip|; both modifications apply
+% only locally to the article output; however, they must be done here
+% to ensure that both the sizing and the layout use the same spacing.
 %    \begin{macrocode}
 \newcommand{\rjl@output@article@common}{%
   \rjl@output@headlines@common%
   \noindent%
   \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}% applies as local change
+  \addtolength{\parskip}{\smallskipamount}% depends on font size
   \ifthenelse{\equal{\rjl@numcols}{1}}{%
     \input{\theartfile}%
   }{%
@@ -1096,8 +1096,6 @@
   \setlength{\leftmargin}{0pt}%
   \setlength{\rightmargin}{0pt}%
   \setlength{\topmargin}{0pt}%
-  \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}%
-  \addtolength{\parskip}{\smallskipamount}% depends on font size
 }{%
   \input{\jobname.lay}
   \sbox{\rjl@junkbox}{\maketitle}%
