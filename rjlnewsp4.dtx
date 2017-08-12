@@ -421,10 +421,15 @@
 \setlength\lineskip{1\p@}
 \setlength\normallineskip{1\p@}
 \renewcommand\baselinestretch{}
-\setlength\parskip{0\p@ \@plus \p@}
+%\setlength\parskip{0\p@ \@plus \p@}
 \@lowpenalty   51
 \@medpenalty  151
 \@highpenalty 301
+%    \end{macrocode}
+%
+% Adjustments to look better in columnar text:
+%    \begin{macrocode}
+  \setlength\parskip{\smallskipamount}% depends on font size
 %    \end{macrocode}
 %
 %    \begin{macrocode}
@@ -745,6 +750,7 @@
 \newcommand{\rjl@output@article@common}{%
   \rjl@output@headlines@common%
   \noindent%
+  \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}% applies as local change
   \ifthenelse{\equal{\rjl@numcols}{1}}{%
     \input{\theartfile}%
   }{%
@@ -827,8 +833,6 @@
 %   code to read in.
 %    \begin{macrocode}
 \newenvironment{newspaper}{
-  \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}%
-  \addtolength{\parskip}{\smallskipamount}% depends on font size
   \sbox{\rjl@junkbox}{\maketitle\mbox{end of title}}
   \setlength{\rjl@tmplen}{\dimexpr\paperheight -\ht\rjl@junkbox -\dp\rjl@junkbox \relax}
   \typeout{PAGESIZE: \the\paperwidth,\the\rjl@tmplen}
@@ -1176,7 +1180,7 @@
       \setlength{\baselineskip}{\rjl@baselineskip}%
       \renewcommand{\theheadline}{\csname rjl@headline#1\endcsname}%
       \renewcommand{\thesubhead}{\csname rjl@subhead#1\endcsname}%
-      \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}%
+      \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}
       \xdef\rjl@numcols{#6}%
       \rjl@output@article@common%
       \expandafter\let\csname rjl@headline#1\endcsname\relax%
