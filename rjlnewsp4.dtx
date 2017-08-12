@@ -283,14 +283,16 @@
 %    \begin{macrocode}
 \RequirePackage{ifthen}
 \RequirePackage{forloop}
-\RequirePackage{multicol}
 %    \end{macrocode}
 %
 % The next section is copied from the article class. It sets up the
 % options for |draft|, |final|, |10pt|, |11pt| and |12pt|.
+% |draft| has been modified to also declare |\rjl@unbalance|; we want
+% to show free vertical space in the final column so the editor knows
+% how many column inches of text are available to fill.
 %    \begin{macrocode}
 \newcommand\@ptsize{0}
-\DeclareOption{draft}{\setlength\overfullrule{5pt}}
+\DeclareOption{draft}{\setlength\overfullrule{5pt}\newcommand{\rjl@unbalance}{0}}
 \DeclareOption{final}{\setlength\overfullrule{0pt}}
 \DeclareOption{10pt}{\renewcommand\@ptsize{0}}
 \DeclareOption{11pt}{\renewcommand\@ptsize{1}}
@@ -384,9 +386,51 @@
     \space\number\year}
 %    \end{macrocode}
 %
+% \DescribeMacro{\rjl@multicol@}
+% Holds the name of the multicols environment to use for breaking text
+% into multple columns. The |rjl@multicols| environment, defined by
+% this class, is used by default; this may be modified by the
+% |multicols| option.
+%    \begin{macrocode}
+\newcommand{\rjl@multicol@}{rjl@multicols}
+%    \end{macrocode}
+%
 % \DescribeMacro{\DeclareOption}
 % Here we process some class options.
 % \begin{itemize}
+% \item \texttt{draft} Draft option as per |article| (defined above);
+% puts black rectangle on the page to mark where boxes have overfilled
+% (where you need to reword the text or modify spacing
+% registers). Also prevents stretching of the final column of an
+% article, to preview the amount of free space left.
+% \item \texttt{final} Final option as per |article|. This ensures
+% that all options are printed in their final published form.
+% \item \texttt{10pt} Selects a 10-point font
+% \item \texttt{11pt} Selects an 11-point font
+% \item \texttt{12pt} Selects a 12-point font
+% \item \texttt{multicols} Load the |multicol| package and use its
+% |multicols| environment for balancing articles. This may better
+% balancing of article text than the built-in version, which simply
+% stretches the final column. This is especially noticable when large
+% items are inserted into the text. However; it is expected that
+% |multicols| will only work with rectangular articles going forward.
+% \item \texttt{multicol} Synonym for |multicols|. Mostly included
+% because it is very easy to get confused between the |multicols|
+% environment and the |multicol| package.
+%    \begin{macrocode}
+\DeclareOption{multicols}{\AtBeginDocument{\RequirePackage{multicol}}\renewcommand{\rjl@multicol@}{multicols}}
+\DeclareOption{multicol}{\AtBeginDocument{\RequirePackage{multicol}}\renewcommand{\rjl@multicol@}{multicols}}
+%    \end{macrocode}
+% \item \texttt{unbalance} Normally an attempt is made to balance the
+% text between the columns of an article; that is, to put the same
+% amount of text into each column. The |draft| option prevents this
+% and allows extra space at the end of the final column. If you want
+% to produce this effect in a final (non-|draft|) document for some
+% reason, use the |unbalance| option. NB: This does not work with
+% |multicols|.
+%    \begin{macrocode}
+\DeclareOption{unbalance}{\newcommand{\rjl@unbalance}{1}}
+%    \end{macrocode}
 % \item \texttt{ltxtoday} Option that can be passed to use the
 % US-style date format used by the standard |article| class.
 %    \begin{macrocode}
@@ -755,9 +799,9 @@
     \input{\theartfile}%
   }{%
     \setlength{\columnsep}{\dimexpr\alleyleft+\alleyright+\downrulethick\relax}%
-    \begin{multicols}{\rjl@numcols}%
+    \expandafter\begin\expandafter{\rjl@multicol@}{\rjl@numcols}%
       \input{\theartfile}%
-    \end{multicols}%
+    \expandafter\end\expandafter{\rjl@multicol@}%
   }%
 }
 %    \end{macrocode}
@@ -1320,6 +1364,149 @@
   }%
 }
 %    \end{macrocode}
+% \subsection{Breaking articles into columns}
+%
+% This can be done well using the |multicols| package; this provides
+% excellent column balancing (especially with large objects within the
+% article text) and support for footnotes, the |\columnbreak| command
+% and various configuration parametecrs.
+%
+% However, |multicols| expects to output the resulting multi-column
+% text directly onto the page; it does not supply access to the
+% individual columns once they are laid out\footnote{It would be
+% technically possible to access |multicol|'s internal box registers,
+% but then |rjlnewsp4| would become vulnerable to changes
+% in the |multicol| package definition, so this is not desirable}, and
+% it is limited to boxes of equal width.
+%
+% The current implementation of |rjl@multicols| is also limited to
+% boxes of equal width; however, it is trivial to supply a list of
+% lengths instead to allow columns of different lengths to be
+% supplied. This would allow an article to be broken into a
+% non-rectangular area of the page.
+%
+% \DescribeMacro{rjl@paracounter} The counter |rjl@paracounter| is a
+% loop counter holding the current column \textit{within the current
+% article}. It starts at 1 and workis its way up to $n-1$, where $n$
+% is the number of columns into which the current article will be
+% broken. (The final column is handled separately after the loop.)
+%
+% \DescribeMacro{rjl@para@cols} The counter |rjl@para@cols| is used to
+% hold the number of columns. We use a dedicated counter for this
+% because we can't access |#1| in horizontal mode due to
+% \LaTeXe\ limitations.
+%    \begin{macrocode}
+\newcounter{rjl@paracounter}
+\newcounter{rjl@para@cols}
+%    \end{macrocode}
+%
+% \DescribeMacro{\rjl@parabox}\DescribeMacro{\rjl@parabox@}
+% |\rjl@parabox| is a box register into which we read the entire article
+% contents. As we loop through each column, the text is split out of
+% |\rjl@parabox| into a |\rjl@parabox@| until |\rjl@parabox| holds the
+% text for the final column.
+%    \begin{macrocode}
+\newsavebox{\rjl@parabox}
+\newsavebox{\rjl@parabox@}
+%    \end{macrocode}
+%
+% \DescribeMacro{\rjl@boxlength} Length |\rjl@boxlength| Holds the
+% text height of each column.
+%
+% \DescribeMacro{\rjl@oldhsize}\DescribeMacro{\rjl@oldvsize}
+% |\rjl@oldhsize| and |\rjl@oldvsize| hold the |\hsize| and |\vsize|
+% value to be restored at the end of the environment. This isn't
+% strictly necessary, but good \TeX\ hygene.
+%
+% \DescribeMacro{\rjl@colwidth} |\rjl@colwidth| is a length register
+% holding the text width. |\hsize| is set to this during the
+% environment to ensure that the columns are captured with the correct
+% width. This could be done entirely with |\dimexpr| expressions, but
+% that would make the macro much harder to read.
+%    \begin{macrocode}
+\newlength{\rjl@boxlength}
+\newlength{\rjl@oldhsize}
+\newlength{\rjl@oldvsize}
+\newlength{\rjl@colwidth}
+%    \end{macrocode}
+%
+% \begin{macro}{rjl@multicols}
+% \marg{numCols}; the number of columns to break the environment
+% into.
+%
+% This macro currently works the same as |multicols| from the
+% |multicol| package in terms of its interface.
+%
+% In the start of the macro, we first set some save registers and then
+% wrap the environment itself in a |\setbox| to store the environment
+% content.
+%
+% At the end of the enviroment, we first issue a |\linebreak|. This
+% ensures that we're not set on the same line as a sub-headline.
+%
+% We then issue a |\noindent|. This prevents \TeX from moving the
+% article as if it were a paragraph to be indented.
+%
+% We then restore |\hsize| and |\vsize|, so that everything we do is
+% working on the full page again.
+%
+% Next we use |\mbox\bgroup|, with a corresponding |\egroup| at the
+% very end; this ensures that everything we output is connected
+% together into one big horizontal box, and stops \TeX\ from helping
+% us by moving a column onte a new ``line'' if things get too wide for
+% |\hsize|.
+%
+% Then we use |forloop| to call |\rjl@splitcol| repeatedly for each
+% column other than the last. This outputs the column of text itself.
+%
+% Finally we output whatever remains in |\rjl@parabox| to output the
+% final column. We wrap this in a plain \TeX\ |\vbox| to force the
+% height (especially with more columns, there may be fewer lines in
+% the final column, so this stretches the text to fit). If the
+% unbalance option is specified, we also add a |\vfill|. We wrap the
+% |\vbox| in a plain \TeX\ |\hbox| to force the width, just in case
+% anything is a significantly different horizontal size; this means
+% we'll get an \textit{overfull \textbackslash hbox} warning if appropriate.
+%    \begin{macrocode}
+\newenvironment{rjl@multicols}[1]{%
+  \setcounter{rjl@para@cols}{#1}% can't access #1 in horizontal mode, so grab it first
+  \setlength{\rjl@colwidth}{\dimexpr\newscolwidth-2\alleyright-2\alleyleft-\downrulethick\relax}% for readability
+  \vsize=\maxdimen\hsize=\rjl@colwidth%
+  \setlength{\rjl@oldhsize}{\hsize}%
+  \setlength{\rjl@oldvsize}{\vsize}%
+  \setbox\rjl@parabox\vbox\bgroup%
+}{\egroup%
+  \linebreak\noindent%
+  \setlength{\hsize}{\rjl@oldhsize}%
+  \setlength{\vsize}{\rjl@oldvsize}%
+  \setlength{\rjl@boxlength}{\dimexpr \dp\rjl@parabox + \ht\rjl@parabox \relax}%
+  \setlength{\rjl@boxlength}{\dimexpr \rjl@boxlength / \value{rjl@para@cols} \relax}%
+  \mbox\bgroup%
+  \forloop{rjl@paracounter}{1}{\value{rjl@paracounter}<\value{rjl@para@cols}}{%
+    \rjl@splitcol%
+  }%
+  \hbox to \rjl@colwidth{\vbox to \rjl@boxlength{\unvbox\rjl@parabox%
+      \@ifundefined{rjl@unbalance}{}{\vfill}%
+  }}%
+  \egroup%
+}
+%    \end{macrocode}
+% \end{macro}
+% 
+% 
+% \begin{macro}{\rjl@splitcol}
+% This is used by the |\rjl@multicols| environment to break each
+% column. It simply performs a plain \TeX\ |\vsplit| command to split
+% off one column from |\rjl@parabox| into |\rjl@parabox@|, then
+% outputs it, followed by the intra-column spacing.
+%    \begin{macrocode}
+\newcommand{\rjl@splitcol}{%
+  \setbox\rjl@parabox@=\vsplit\rjl@parabox to \rjl@boxlength%
+  \hbox to \rjl@colwidth{\usebox{\rjl@parabox@}}\hspace{\alleyright}\hspace{\downrulethick}\hspace{\alleyleft}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \subsection{Postamble}
 % Tidy up: make @ not a letter again
 %    \begin{macrocode}
