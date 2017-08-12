@@ -211,29 +211,90 @@
 % 
 % \subsection{Changing the Appearance}
 % 
-%% % \DescribeMacro{\leftalley}
-%% % 
-%% % Between two adjacent columns is a gap known as an \textit{alley},
-%% % which prevents the reader's eye from jumping from one column to the
-%% % next. In |rjlnewsp|, the alley is built up of two spaces (determined
-%% % by |\leftalley| and |\rightalley|) and a downrule (a vertical line,
-%% % determined by |\divwidth|).
-%% % 
-%% % This length holds the partial width of the alley. This is space
-%% % added at the left-hand side of each column.
-%% % 
-%% % \DescribeMacro{\rightalley}
-%% % 
-%% % This length holds the partial width of the alley. This is space
-%% % added at the right-hand side of each column.
-%% % 
-%% % \DescribeMacro{\divwidth}
-%% % 
-%% % A vertical line, known as a downrule, normally appears in the alley
-%% % between two adjacent columns. |\divwidth| holds the width of the
-%% % dark vertical lines between columns. To avoid these lines, set this
-%% % length to~|0pt|.
+% \DescribeMacro{\alleyleft}
 % 
+% Between two adjacent columns is a gap known as an \textit{alley},
+% which prevents the reader's eye from jumping from one column to the
+% next. In |rjlnewsp|, the alley is built up of two spaces (determined
+% by |\alleyleft| and |\alleyright|) and a downrule (a vertical line,
+% determined by |\downrulethick|).
+% 
+% This length holds the partial width of the alley. This is space
+% added at the left-hand side of each column.
+% 
+% \DescribeMacro{\alleyright}
+% 
+% This length holds the partial width of the alley. This is space
+% added at the right-hand side of each column.
+% 
+% \DescribeMacro{\downrulethick}
+% 
+% A vertical line, known as a downrule, normally appears in the alley
+% between two adjacent columns. |\downrulethick| holds the width of the
+% dark vertical lines between columns. To avoid these lines, set this
+% length to~|0pt|.
+%
+% \DescribeMacro{\downruletop}
+%
+% If the rules between articles are drawn to their logical full
+% length, the effect is to create a grid, with each article's columns
+% surrounded by a complete paragraph box. This is usually considered
+% to be too imposing, so newspapers add extra whitespace by stopping
+% the rules a few points short of their natural termination.
+% 
+% The length |\downruletop| is extra space added to the top of a
+% downrule, shortening it. It should usually be the same as
+% |\downrulebottom|. By default, it is also the same as
+% |\sideruleleft| and |\sideruleright|.
+% 
+% \DescribeMacro{\downrulebottom}
+% 
+% The length |\downrulebottom| is extra space added to the bottom of a
+% downrule, shortening it. It should usually be the same as
+% |\downruletop|. By default, it is also the same as
+% |\sideruleleft| and |\sideruleright|.
+%
+% \DescribeMacro{\alleytop}
+% 
+% Between two vertically-adjacent articles is a gap known as an
+% \textit{alley}, which indicates the end of one article and the start
+% of the next. In |rjlnewsp|, the alley is built up of two spaces
+% (determined by |\alleytop| and |\alleybottom|) and a rule (a
+% horizontal line, determined by |\siderulethick|).
+% 
+% This length holds the partial width of the alley. This is space
+% added at the top of each article (typically extra space above the
+% headline, or space between the rule and the article body text if
+% this is a continuation column).
+% 
+% \DescribeMacro{\alleybottom}
+% 
+% This length holds the partial width of the alley. This is space
+% added at the bottom of each article column.
+% 
+% \DescribeMacro{\siderulethick}
+% 
+% A horizontal line, known as a rule, normally appears in the alley
+% between vertically adjacent articles. Since there can be many
+% ``rules'' in a newspaper, we call this a
+% \textit{siderule}. |\siderulethick| holds the width of the 
+% dark horizontal lines between articles. To avoid these lines, set
+% this length to~|0pt|.
+% 
+% \DescribeMacro{\sideruleleft}
+%
+% The length |\sideruleleft| is extra space added to the left of a
+% siderule, shortening it. It should usually be the same as
+% |\sideruleright|. By default, it is also the same as
+% |\downruletop| and |\downrulebottom|.
+% 
+% \DescribeMacro{\sideruleright}
+% 
+% The length |\sideruleright| is extra space added to the right of a
+% siderule, shortening it. It should usually be the same as
+% |\sideruleleft|. By default, it is also the same as
+% |\downruletop| and |\downrulebottom|.
+%
 % \section{Implementation}
 % \subsection{Preamble}
 % 
@@ -249,8 +310,6 @@
 %
 % Using |minimal| as a base class is also a bad idea for the reasons
 % set out in that package. So instead we start from scratch.
-%%%%%%%LoadClass{article}
-%%%%%%% copied from minimal:
 %
 % All document classes must define |\normalsize|, |\textwidth| and
 % |\textheight|. |10pt| seems like a good standard to go with, and
@@ -305,7 +364,7 @@
 \DeclareOption{12pt}{\renewcommand\@ptsize{2}}
 %    \end{macrocode}
 %
-% Standard lengths as per |article|. These may be tweaked befero
+% Standard lengths as per |article|. These may be tweaked before
 % release to better support text in narrow columns.
 %
 %    \begin{macrocode}
