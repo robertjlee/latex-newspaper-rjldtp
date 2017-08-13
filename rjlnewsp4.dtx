@@ -940,13 +940,13 @@
 %    \begin{macrocode}
 \newcommand{\rjl@process@article}{
   \stepcounter{rjl@maxcols}
-  \setlength{\newsartwidth}{\dimexpr\newscolwidth-\alleyleft-\alleyright\relax}
+  \setlength{\newsartwidth}{\newscolwidth}
   \forloop{rjl@col@count}{1}{\value{rjl@col@count}<\value{rjl@maxcols}}{
     \ifthenelse{\value{rjl@mincols} > \value{rjl@col@count}}{}{
       \xdef\rjl@numcols{\therjl@col@count}
       \rjl@output@article
     }
-    \addtolength{\newsartwidth}{\dimexpr\newscolwidth-\alleyleft-\alleyright-\downrulethick\relax}
+    \addtolength{\newsartwidth}{\newscolwidth}
   }
   \addtocounter{rjl@maxcols}{-1}
 }
@@ -1561,7 +1561,7 @@
 %    \begin{macrocode}
 \newenvironment{rjl@multicols}[1]{%
   \setcounter{rjl@para@cols}{#1}% can't access #1 in horizontal mode, so grab it first
-  \setlength{\rjl@colwidth}{\dimexpr\newscolwidth-2\alleyright-2\alleyleft-\downrulethick\relax}% for readability
+  \setlength{\rjl@colwidth}{\dimexpr\newscolwidth-\alleyright-\alleyleft-\downrulethick\relax}% for readability
   \vsize=\maxdimen\hsize=\rjl@colwidth%
   \setlength{\rjl@oldhsize}{\hsize}%
   \setlength{\rjl@oldvsize}{\vsize}%
