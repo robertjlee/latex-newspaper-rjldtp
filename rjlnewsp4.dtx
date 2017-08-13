@@ -438,17 +438,32 @@
 %    \end{macrocode}
 %
 % \DescribeMacro{\today}
-% |\today| is a macro from |article|.
-% It's been modified to put out dates in British format, with proper superscripts.
-% To use the American-style default as per |article|, use the option |ltxtoday|
+% |\today| is a macro from |article|, so we'd better provide a definition.
+%
+% This version has been modified to put out dates in British format,
+% with proper superscripts.
+%
+% To use the American-style default as per |article|, use the option
+% |ltxtoday|.
+%
+% Some packages cause problems if you want this format; if you use a
+% style such as |babel| --- which overrides the definition of |\today|
+% in |english.ldf| at the start of the document --- or |datetime| or
+% |datetime2| --- which redefines |\today| in the style file as well
+% as giving many other options for date formatting.
+%
+% If you do want this format, the option |forcetoday| will also
+% redefine |\today| at the start of the |newspaper| environment,
+% overwriting any changes from other packages.
 %    \begin{macrocode}
-\newcommand{\today}{%
+\newcommand{\rjl@today@}{%
   \number\day\textsuperscript{\ifcase\day th%0
     \or st\or nd\or rd\else th\fi}\,% \, shorter than \space due to superscript
   \ifcase\month\or
     January\or February\or March\or April\or May\or June\or
     July\or August\or September\or October\or November\or December\fi
     \space\number\year}
+\newcommand{\today}{\rjl@today@}%
 %    \end{macrocode}
 %
 % \DescribeMacro{\rjl@multicol@}
@@ -518,12 +533,20 @@
 %    \end{macrocode}
 % \item \texttt{layout} Instead of sizing, the article will be typeset
 % using the layout file. Usually passed by the C++ program.
-% \end{itemize}
 %    \begin{macrocode}
 \DeclareOption{layout}{%
   \typeout{This shalt be the final output. Reading \jobname.lay}%
   \newcommand{\rjl@dofinal}{}%
 }
+%    \end{macrocode}
+% \item \texttt{forcetoday} Allow our |\today| command to overwrite
+% the version used by |babel|, which does not use superscripts.
+% \end{itemize}
+%    \begin{macrocode}
+\newcommand{\rjl@today}{}
+\DeclareOption{forcetoday}{%
+  \renewcommand{\rjl@today}{\renewcommand{\today}{\rjl@today@}}%
+}%
 \ProcessOptions%
 % Copied from article:
 \input{size1\@ptsize.clo}
@@ -942,6 +965,7 @@
 %   code to read in.
 %    \begin{macrocode}
 \newenvironment{newspaper}{
+  \rjl@today
   \sbox{\rjl@junkbox}{\maketitle\mbox{end of title}}
   \setlength{\rjl@tmplen}{\dimexpr\paperheight -\ht\rjl@junkbox -\dp\rjl@junkbox \relax}
   \typeout{PAGESIZE: \the\paperwidth,\the\rjl@tmplen}
