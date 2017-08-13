@@ -956,15 +956,18 @@
 % \begin{environment}{newspaper}
 %   |newspaper| takes no arguments.
 %
+%   |\rjl@today| is called to fix the |\today| command if the
+%   |forcetoday| option is used; it does nothing otherwise.
+%
 %   The output routine is changed to \@rjl@outgetheight, which
 %   captures each article in turn. The initial page width and height
 %   are captured, and restored at the end of the environment. This
 %   accommodates the |article| environment, which changes the page
 %   sizes as seen by the page builder.
 %
-%   At the start of the environment, we lay out the title, then
-%   output the page size (minus the headline's height) for the C++
-%   code to read in.
+%   At the start of the environment, we lay out the title into a
+%   temporary box (|\rjl@junkbox|), then output the page size (minus
+%   the title box's height and depth) for the C++ code to read in.
 %    \begin{macrocode}
 \newenvironment{newspaper}{
   \rjl@today
@@ -1012,8 +1015,7 @@
 % 
 %
 % \DescribeMacro{\rjl@outgetheight} Gets the height of an output page
-% and sets it somehow. I have no idea how mixing \TeX's |\global|
-% with \LaTeX's |\setlength| works, but it does\dots
+% (an article) and writes it to standard output.
 %
 % This is mostly plain \TeX\ as there aren't many equivalent \LaTeX
 % \textbackslash box commands. First, we |\unvbox| the output box~255 into a junk
