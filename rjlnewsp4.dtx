@@ -553,7 +553,6 @@
 \setlength\lineskip{1\p@}
 \setlength\normallineskip{1\p@}
 \renewcommand\baselinestretch{}
-%\setlength\parskip{0\p@ \@plus \p@}
 \@lowpenalty   51
 \@medpenalty  151
 \@highpenalty 301
@@ -581,7 +580,7 @@
 %    \begin{macrocode}
 \newcommand{\headline}[1]{%
   \centerline{\large \textbf{#1}}%
-  \vspace{-0.8em}%
+  \vspace{-1em}%
   \par%
 }
 %    \end{macrocode}
@@ -884,7 +883,8 @@
   \rjl@output@headlines@common%
   \noindent%
   \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}% applies as local change
-  \addtolength{\parskip}{\smallskipamount}% depends on font size
+  \setlength{\parskip}{\smallskipamount}% depends on font size
+  \setlength{\parindent}{1em}%
   \ifthenelse{\equal{\rjl@numcols}{1}}{%
     \input{\theartfile}%
   }{%
@@ -1286,9 +1286,6 @@
 % There's probably a neater solution that could be obtained by
 % rewriting |\rjl@xy| to expand its arguments immedately somehow.
 %    \begin{macrocode}
-\newlength{\rjl@parindent}
-\newlength{\rjl@parskip}
-\newlength{\rjl@baselineskip}
 \newlength{\rjl@tmplen}
 \newcommand{\rjl@downrule}[1]{\noindent\rule{\downrulethick}{#1}}
 \newcommand{\valley}[3]{%
@@ -1304,15 +1301,9 @@
 % when read in the output routine, or they default to |0.0pt|.
 %    \begin{macrocode}
 \newcommand{\doarticle}[6]{%
-  \setlength{\rjl@parindent}{\parindent}
-  \setlength{\rjl@parskip}{\parskip}
-  \setlength{\rjl@baselineskip}{\baselineskip}
   \rjl@xy{\dimexpr #2+\alleyright\relax}{\dimexpr #3+\alleybottom\relax}{%
     \parbox[t][\dimexpr #5-\alleytop-\alleybottom\relax][s]{%
       \dimexpr #4-\alleyleft-\alleyright\relax}{%
-      \setlength{\parindent}{\rjl@parindent}%
-      \setlength{\parskip}{\rjl@parskip}%
-      \setlength{\baselineskip}{\rjl@baselineskip}%
       \renewcommand{\theheadline}{\csname rjl@headline#1\endcsname}%
       \renewcommand{\thesubhead}{\csname rjl@subhead#1\endcsname}%
       \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}
