@@ -1585,8 +1585,20 @@
 % column. It simply performs a plain \TeX\ |\vsplit| command to split
 % off one column from |\rjl@parabox| into |\rjl@parabox@|, then
 % outputs it, followed by the intra-column spacing.
+%
+% |\splittopskip| is a \TeX\ primitive glue automatically added to the
+% top of the split-off vbox; we seem to trash the |\topskip| at the
+% top of the article quite effectively, so we also set this to 0 so
+% that the columns line up at the top edge. A plain-\TeX assignment is
+% used to keep the length modification local to this group.
+%
+% |\splitmaxdepth| is another \TeX\ primitive affecting |\vsplit|; it
+% sets a maximum limit on the height of the split-off material, so
+% we'll set that to |\maxdimen| in another local assignment.
 %    \begin{macrocode}
 \newcommand{\rjl@splitcol}{%
+  \splittopskip=0pt%
+  \splitmaxdepth=\maxdimen%
   \setbox\rjl@parabox@=\vsplit\rjl@parabox to \rjl@boxlength%
   \hbox to \rjl@colwidth{\usebox{\rjl@parabox@}}\hspace{\alleyleft}\hspace{\downrulethick}\hspace{\alleyright}%
 }
