@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
     if (stageSet) {
       std::string texcmdline = texcmd +
 	" -interaction=nonstopmode -output-directory=" +outdir+ " " + 
-	"'\\PassOptionsToClass{layout}{rjlnewsp4} \\input{" +
+	"'\\PassOptionsToClass{layoutnews}{rjlnewsp4} \\input{" +
 	file + "}'";
       shellout generation(texcmdline);
       while (!generation.eof()) {
