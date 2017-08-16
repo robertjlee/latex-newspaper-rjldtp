@@ -7,16 +7,16 @@ namespace typeset {
   class setter::impl {
   public:
     void operator()(const Page &p, 
-		    const std::vector<::layout::articlePlacement> & placements);
+		    const std::list<::layout::articlePlacement> & placements);
   private:
-    bool alleyAt(const std::vector<::layout::articlePlacement> & placements,
+    bool alleyAt(const std::list<::layout::articlePlacement> & placements,
 		  const std::pair<double, double> & start,
 		  const std::pair<double, double> & end) const;
   };
 
   setter::setter() {}
   setter::~setter() {}
-  void setter::operator()(const Page &p, const std::vector<::layout::articlePlacement> & placements) {
+  void setter::operator()(const Page &p, const std::list<::layout::articlePlacement> & placements) {
     (*pImpl_)(p, placements);
   }
 
@@ -30,7 +30,7 @@ namespace typeset {
  */
 void typeset::setter::impl::operator()
   (const Page &p, 
-   const std::vector<::layout::articlePlacement> & placements) {
+   const std::list<::layout::articlePlacement> & placements) {
 
   std::ofstream layfile(p.layfile(), std::ios_base::trunc);
 
@@ -139,7 +139,7 @@ void typeset::setter::impl::operator()
  * - if so, there will be one article where both start and end are corners
  */
 bool typeset::setter::impl::alleyAt
-(const std::vector<::layout::articlePlacement> & placements,
+(const std::list<::layout::articlePlacement> & placements,
  const std::pair<double, double> & start,
  const std::pair<double, double> & end) const {
   for (auto &p : placements) {

@@ -14,16 +14,24 @@ class area;
  */
 bool dblGt(const double a, const double b, const double eps = 0.0001);
 
+/*
+ * Is a < b within eps of a measurement unit?
+ * Note that this is not the inverse of dblGt
+ */
+bool dblLt(const double a, const double b, const double eps = 0.0001);
+
 // simple POJO to hold the location of an article on the page
 class area {
 public:
   double w_, h_, x_, y_;
-  double size() const;
   area();
   area(const double & w,const double & h,const double & x,const double & y);
   area(const area & a);
   area operator =(const area & a);
   ~area();
+  double size() const;
+  double x2() const { return x_ + w_; };
+  double y2() const { return y_ + h_; };
 };
 
 
@@ -175,7 +183,7 @@ namespace layout {
     art_(rhs.art_),
     opt_(rhs.opt_) {}
   ~articlePlacement() {}
-  articlePlacement & operator =(const articlePlacement & rhs) = delete;
+    articlePlacement & operator =(const articlePlacement & rhs) = delete;
 };
 
 }

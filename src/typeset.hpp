@@ -18,7 +18,7 @@ namespace typeset {
   public:
     setter();
     ~setter();
-    void operator()(const Page &p, const std::vector<::layout::articlePlacement> & placements);
+    void operator()(const Page &p, const std::list<::layout::articlePlacement> & placements);
   }; 
 
 }; // namespace typeset

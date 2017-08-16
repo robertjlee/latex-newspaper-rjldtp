@@ -4,6 +4,7 @@
 
 #include "data.hpp"
 #include "layout_worst.hpp"
+#include "layout_tidy.hpp"
 #include "typeset.hpp"
 #include "cmdline.hpp"
 #include "process.hpp"
@@ -15,6 +16,14 @@
  */
 bool dblGt(const double a, const double b, const double eps) {
   return (a - eps > b);
+}
+
+/*
+ * Is a < b within eps of a measurement unit?
+ * Note that this is not the inverse of dblGt
+ */
+bool dblLt(const double a, const double b, const double eps) {
+  return (a + eps < b);
 }
 
 std::ostream& operator<< (std::ostream& out, const area &a) {
@@ -169,7 +178,8 @@ int main(int argc, char** argv) {
       auto combo = p.findBestOptions();
       combo = p.sortArticlesBySize(combo);
       //    p.layoutRecurse(combo);
-      auto layout = layout::worstFit<>();
+      auto layoutImpl = layout::worstFit<>();
+      auto layout = layout::stretchDecorator<layout::worstFit<> >(layoutImpl);
       auto &result = layout(p, combo);
       for (auto &r : result) {
 	cout << "Placing article #" << r.art_.id() << " at " << r.area_

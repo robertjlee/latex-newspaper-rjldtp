@@ -93,9 +93,9 @@ struct splitSpace {
 template <bool widthFirst = true>
 class worstFit {
 private: 
-  std::vector<articlePlacement> result_;
+  std::list<articlePlacement> result_;
 public:
-  const std::vector<articlePlacement> & 
+  const std::list<articlePlacement> & 
   operator()(const Page & p, const std::vector<int> & preferredArticles) {
     layoutRecurse(p, preferredArticles, preferredArticles.size()-1);
     return result_;
@@ -133,7 +133,7 @@ private:
    * article placed.
    */
   void layout(const Page & p, const std::vector<int> & options) {
-    std::vector<articlePlacement> result;
+    std::list<articlePlacement> result;
     area wholePage(p.width(), p.height(), 0, 0);
     std::list<area> areas(1, wholePage);
 
