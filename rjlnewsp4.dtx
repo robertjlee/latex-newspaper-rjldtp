@@ -1558,9 +1558,9 @@
 \newenvironment{rjl@multicols}[1]{%
   \setcounter{rjl@para@cols}{#1}% can't access #1 in horizontal mode, so grab it first
   \setlength{\rjl@colwidth}{\dimexpr\newscolwidth-\alleyright-\alleyleft-\downrulethick\relax}% for readability
-  \vsize=\maxdimen\hsize=\rjl@colwidth%
   \setlength{\rjl@oldhsize}{\hsize}%
   \setlength{\rjl@oldvsize}{\vsize}%
+  \vsize=\maxdimen\hsize=\rjl@colwidth%
   \setbox\rjl@parabox\vbox\bgroup%
 }{\egroup%
   \linebreak\noindent%

@@ -34,9 +34,10 @@ void typeset::setter::impl::operator()
 
   std::ofstream layfile(p.layfile(), std::ios_base::trunc);
 
+  double maxWidth = 0;
+  for (auto &p : placements) maxWidth = std::max(maxWidth, p.area_.x2());
   // first we output the text width and h-margin:
-  double hmargin = p.width();
-  while (hmargin - p.colWidth() > 0) hmargin -= p.colWidth();
+  double hmargin = p.width() - maxWidth;
   layfile << "\\setlength{\\textwidth}{"
 	  << p.width() - hmargin
 	  << "pt}\\setlength{\\hsize}{\\textwidth}"
