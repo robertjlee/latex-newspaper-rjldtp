@@ -864,6 +864,19 @@
 %    \end{macrocode}
 % \end{macro}
 % 
+% \begin{macro}{rjl@output@article@common@lengths}
+% Simple macro to set common lengths for reading articles.
+% Used by |\rjl@output@article@common| and also |splitarticle| environment
+%    \begin{macrocode}
+\newcommand{\rjl@output@article@common@lengths}{
+  \noindent%
+  \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}% applies as local change
+  \setlength{\parskip}{\smallskipamount}% depends on font size
+  \setlength{\parindent}{1em}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{macro}{rjl@output@article@common}
 % This common routine typesets the current article, setting
 % |\colmnsep|.
@@ -880,11 +893,7 @@
 % to ensure that both the sizing and the layout use the same spacing.
 %    \begin{macrocode}
 \newcommand{\rjl@output@article@common}{%
-  \rjl@output@headlines@common%
-  \noindent%
-  \addtolength{\baselineskip}{0pt plus 0.125pt minus 0.5pt}% applies as local change
-  \setlength{\parskip}{\smallskipamount}% depends on font size
-  \setlength{\parindent}{1em}%
+  \rjl@output@article@common@lengths%
   \ifthenelse{\equal{\rjl@numcols}{1}}{%
     \input{\theartfile}%
   }{%
@@ -1005,6 +1014,7 @@
   \global\setlength{\hsize}{\dimexpr\newsartwidth-\alleyleft-\alleyright\relax}
   \setlength{\vsize}{\maxdimen}
   \parbox[t]{\dimexpr\newsartwidth-\alleyleft-\alleyright\relax}{%
+    \rjl@output@headlines@common%
     \rjl@output@article@common%
   }
   \mbox{\textbf{ENDOFART}} % sets the depth of the box
@@ -1194,7 +1204,8 @@
 %  \item Y coordinate of bottom end
 %  \item Y height
 %  \end{itemize}
-% \item |\doarticle| typeset the article contents. Arguments are:
+% \item |\doarticle| typeset the article contents in a
+% rectangle. Downrules are placed automatically between columns. Arguments are:
 %  \begin{itemize}
 %  \item article ID (numeric counter)
 %  \item X coordinate of left edge (length unit)
@@ -1310,6 +1321,7 @@
       \renewcommand{\thesubhead}{\csname rjl@subhead#1\endcsname}%
       \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}
       \xdef\rjl@numcols{#6}%
+      \rjl@output@headlines@common%
       \rjl@output@article@common%
       \expandafter\let\csname rjl@headline#1\endcsname\relax%
       \expandafter\let\csname rjl@subhead#1\endcsname\relax%
@@ -1340,6 +1352,117 @@
   }%
 }
 %    \end{macrocode}
+%
+% \begin{environment}{splitarticle}
+% \marg{articleId} article ID (numeric counter)
+% \marg{width} column width
+% \marg{cols} number of columns
+% The |splitarticle| environment is a more expressive form of |\doarticle|,
+% which allows the caller to break away from the fixed-rectangle
+% approach of laying out articles.
+%
+% The text is still typeset in columns, but each column is placed
+% separately, and the |.lay| file must list downrules between columns
+% explicitly.
+%
+% The headline is typeset seperately from the article body with the
+% dimensions provided in the |\artheadline| command.
+%
+% The |multicols| option does not apply to this format.
+%
+% Implementation: First read the article into |\rjl@parabox| in the
+% same way as |rjl@multicols|. Each column will split off and typeset
+% a section of the document, as |rjl@multicols| does, except that it
+% will typeset it at the given coordinates instead of building up a
+% box to expand to.
+%    \begin{macrocode}
+\newenvironment{splitarticle}[3]{
+  \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}%
+  \setlength{\rjl@colwidth}{\dimexpr #2-\alleyright-\alleyleft-\downrulethick\relax}%
+  \setlength{\rjl@oldhsize}{\hsize}%
+  \setlength{\rjl@oldvsize}{\vsize}%
+  \xdef\rjl@numcols{#3}%
+  \vsize=\maxdimen\hsize=\rjl@colwidth%
+  \setbox\rjl@parabox\vbox\bgroup%
+    \rjl@output@article@common@lengths%
+    \input{\theartfile}
+  \egroup%
+  \typeout{Parabox read from \theartfile: \the\ht\rjl@parabox \space plus \the\dp\rjl@parabox \space tall by \the\wd\rjl@parabox}
+  \setlength{\hsize}{\rjl@oldhsize}%
+  \setlength{\vsize}{\rjl@oldvsize}%
+%    \end{macrocode}
+% \begin{macro}{\artheadline}
+% \marg{x-left}
+% \marg{y-top}
+% \marg{width}
+% \marg{height}
+%    \begin{macrocode}
+  \renewcommand{\artheadline}[4]{
+    \rjl@xy{\dimexpr ##1+\alleyright\relax}{\dimexpr ##2+\alleybottom\relax}{%
+      \parbox[t][\dimexpr ##4-\alleytop-\alleybottom\relax][s]{%
+        \dimexpr ##3-\alleyleft-\alleyright\relax}{%
+        \renewcommand{\theheadline}{\csname rjl@headline#1\endcsname}%
+        \renewcommand{\thesubhead}{\csname rjl@subhead#1\endcsname}%
+        \rjl@output@headlines@common%
+      }
+    }
+  }
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\artcolumn}
+% \marg{x-left}
+% \marg{y-top}
+% \marg{height}
+% Each column is typeset seperately with a specific |\artcolumn|
+% command.
+%    \begin{macrocode}
+  \newcounter{rjl@artsplitboxcounter}
+  \setcounter{rjl@artsplitboxcounter}{0}
+  \renewcommand{\artcolumn}[3]{
+    \setlength{\rjl@boxlength}{\dimexpr ##3-\alleytop-\alleybottom\relax}%
+    \typeout{next col length: \the\rjl@boxlength, width: \the\rjl@colwidth}%
+    \stepcounter{rjl@artsplitboxcounter}
+    \xdef\rjl@splitboxrm{\roman{rjl@artsplitboxcounter}}%
+    \expandafter\newsavebox\csname rjl@splitbox@\rjl@splitboxrm\endcsname
+    % TeX primative \setbox needed for \global to work, for box to still be set at end of page...
+    %\rjl@splitcol% also outputs intra-column spacing, but that should be okay.
+    %\global\expandafter\setbox\csname rjl@splitbox@\rjl@splitboxrm\endcsname\hbox{\rjl@splitcol}
+    \rjl@splitcol@{rjl@splitbox@\rjl@splitboxrm}%
+    \expandafter\rjl@artout\expandafter{\rjl@splitboxrm}%
+               {##1+\alleyright}{##3-##2+\alleybottom}%
+               {\dimexpr ##3-\alleytop-\alleybottom\relax}
+  }%
+  % \marg{boxname} without leading rjl@splitbox@
+  % \marg{xpos} (evaluated inside |\dimexpr|\dots|\relax|)
+  % \marg{y-bottom} (evaluated inside |\dimexpr|\dots|\relax|)
+  % \marg{height}
+  \renewcommand{\rjl@artout}[4]{
+    \rjl@xy[%
+      \xdef\rjl@splitbox{rjl@splitbox@##1}%
+    ]{##2}{##3}{%
+      \parbox[t][##4][s]{%
+        \dimexpr \rjl@colwidth - \alleyleft - \alleyright\relax}{%
+        \expandafter\usebox\csname\rjl@splitbox\endcsname}%
+    }%
+  }
+}{
+%  \expandafter\let\csname rjl@headline#1\endcsname\relax%
+%  \expandafter\let\csname rjl@subhead#1\endcsname\relax%
+%  \expandafter\let\csname rjl@artfile#1\endcsname\relax%
+  \renewcommand{\artheadline}[4]{\PackageError[rjlnewsp4.dtx]{\protect\artcolumn
+      not allowed outside article environment}}
+  \renewcommand{\artcolumn}{\PackageError[rjlnewsp4.dtx]{\protect\artcolumn
+      not allowed outside article environment}}
+}
+\newcommand{\artheadline}[4]{\PackageError[rjlnewsp4.dtx]{\protect\artcolumn
+    not allowed outside article environment}}
+\newcommand{\artcolumn}{\PackageError[rjlnewsp4.dtx]{\protect\artcolumn
+    not allowed outside article environment}}
+\newcommand{\rjl@artout}[4]{}
+%    \end{macrocode}
+% \end{macro}
+% \end{environment}
 %
 % End of the giant |\@ifundefined| that switches between sizing
 % and layout mode.
@@ -1603,7 +1726,26 @@
   \splitmaxdepth=\maxdimen%
   \setbox\rjl@parabox@=\vsplit\rjl@parabox to \rjl@boxlength%
   \hbox to \rjl@colwidth{\usebox{\rjl@parabox@}}\hspace{\alleyleft}\hspace{\downrulethick}\hspace{\alleyright}%
+  \typeout{splitcol: \the\rjl@colwidth \space wide by \the\rjl@boxlength}
 }
+% \begin{macro}{\rjl@splitcol@}
+% \marg{boxname}
+% This alternate form saves to the box with the given name (excluding slash)
+% and does not include spaces.
+% The save is global; the caller must ensure that the box is cleared eventually
+% if the memory is to be reclaimed.
+%    \begin{macrocode}
+\newcommand{\rjl@splitcol@}[1]{%
+  \splittopskip=0pt%
+  \splitmaxdepth=\maxdimen%
+  \setbox\rjl@parabox@=\vsplit\rjl@parabox to \rjl@boxlength%
+  \global\expandafter\setbox\csname#1\endcsname=\hbox to \rjl@colwidth{\usebox{\rjl@parabox@}}
+  \typeout{splitcol@: \the\rjl@colwidth \space wide by \the\rjl@boxlength}%
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\rjl@splitcol}
 %    \end{macrocode}
 % \end{macro}
 %
