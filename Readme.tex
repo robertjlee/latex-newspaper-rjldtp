@@ -45,12 +45,13 @@ A \textit{newspaper} is the document we are typesetting.
 An \textit{article} is a sub-document consisting of a title, including
 headline, and potentially multiple paragraphs of text. No restrictions
 are placed on the content except that it is to be rendered as
-\LaTeX\ source and may be parsed multiple times during rendering.
+\LaTeX\ source and may be parsed multiple times during rendering; it
+should fill the same page area with each pass.
 
 The \textit{editor} is the user of the program, who is assumed to have
 collected the articles and to have final responsibility for passing
 the finished design. This is considered to be synonymous with
-\textit{layout designer}
+\textit{layout designer} for the purposes of this document.
 
 \section{Research}
 
@@ -71,9 +72,6 @@ The plan here is to fill the page as completely as possible. Each
 article will be typeset in a rectangular box, with a header containing
 the centered headline across the full width, and the article set
 underneath in columns.
-
-For future expansion, we might consider changing the number of columns
-in each article to adjust the space it takes up.
 
 We want to lay out the articles on the page such that no article needs
 a space that is not rectangular. We will prefer filled pages to
@@ -157,8 +155,18 @@ several other algorithms:
 It's possible this may produce no result. In this case, we need to try
 a more thorough algorithm that allows for the breaking of articles.
 
-In the short term, we'll just output an error describing the best fit
+If no result is found, we repeat the algorithm with diffing numbers of
+columns in each article to adjust the space it takes up. By reducing
+the number of columns, the space used by the title is reduced and so
+the area required is less, although the length required increases.
+
+In the short term, we will output an error describing the best fit
 that we were able to find.
+
+In future, we will consider other forms of layout, including splitting
+articles into non-rectangular spaces and starting with rough
+``templates'' (eg largest item in the centre, and wrapping articles
+around it te fill the page).
 
 \section*{Limitations}
 
@@ -239,6 +247,19 @@ Otherwise, there is a solution that involves modifying the input text
 to avoid the implicit horizontal space at the end of the paragraph; I
 wrote the \verb!rjldtp! package specifically to address this issue by
 injecting \TeX\ primitives.
+
+In practise, the \verb!rjldtp!-style approach is only needed when the
+width of the columns changes mid-article; an element is injected into
+the source text at the point where the article splits which exits
+horizontal (paragraph-building) mode, inserts a column-break,
+changes the \verb!\hsize! to which the text is typeset, and injects
+\verb!\noindent! to avoid starting a new visual paragraph. If the
+width of the column does not change, then the article can be typeset
+into a box register, then that register split using \verb!\vsplit! to
+the desired length. This is much simpler code, although ideally we
+should do something similar to the \verb!multicols! environment to
+balance the text across columns in the case where the article is short
+(as \TeX\ doesn't always break boxes exactly where you want it to).
 
 \section*{\cpp Proof-of-Concept Program}
 
