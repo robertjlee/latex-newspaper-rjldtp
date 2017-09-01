@@ -712,7 +712,6 @@
 % better fills the page.
 %    \begin{macrocode}
 \newcommand{\article}[3][5]{
-  \typeout{Article #2 is #3}
   \rjl@readnumcols#1\relax\relax\relax\relax
   \renewcommand{\theartfile}{#2}
   \renewcommand{\theheadline}{#3}
@@ -833,7 +832,7 @@
 % \end{macro}
 % \end{macro}
 %
-% \begin{macro}{rjl@output@headlines@common}
+% \begin{macro}{\rjl@output@headlines@common}
 % This routine outputs the headlines.
 %
 % It takes no parameters, but experts |\theheadline| and |\thesubhead|
@@ -864,7 +863,7 @@
 %    \end{macrocode}
 % \end{macro}
 % 
-% \begin{macro}{rjl@output@article@common@lengths}
+% \begin{macro}{\rjl@output@article@common@lengths}
 % Simple macro to set common lengths for reading articles.
 % Used by |\rjl@output@article@common| and also |splitarticle| environment
 %    \begin{macrocode}
@@ -877,7 +876,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{rjl@output@article@common}
+% \begin{macro}{\rjl@output@article@common}
 % This common routine typesets the current article, setting
 % |\colmnsep|.
 %
@@ -906,7 +905,7 @@
 %    \end{macrocode}
 % \end{macro}
 %
-% \begin{macro}{rjl@col@count}
+% \begin{macro}{\rjl@col@count}
 % The |rjl@col@count| counter is used to iterate over the various
 % options for the number of columns when sizing the articles.
 %
@@ -994,7 +993,7 @@
 % \end{environment}
 % 
 % 
-% \begin{macro}{rjl@output@article}
+% \begin{macro}{\rjl@output@article}
 % \marg{columns}
 %   The |rjl@output@article| macro is where the main input work is done.
 %   
@@ -1058,34 +1057,6 @@
 \newbox\@rjl@output@art@tmp
 \newbox\rjl@junkbox
 %    \end{macrocode}
-%
-%% % \begin{macro}{\@rjl@output}
-%% %   \subsubsection*{The Output routine}
-%% %   
-%% %   Each article is set with |\vbox| at to the maximum size that
-%% %   \TeX{} can process~(16384pt, around 5 metres, or nearly 19 feet),
-%% %   so that the article is set in essentially one long column. Each
-%% %   article also ends with ends with |\eject|, which causes the output
-%% %   routine to be called.
-%% %
-%% %   This means that the the input to the output routine is the entire
-%% %   article in a box of the correct width, at around 5m tall,
-%% %   regardless of the amount of input text.
-%% %
-%% %   TODO: This is a very cut-down version of rjlnewsp version 2, which
-%% %   did it better as it laid out the article properly into columns to
-%% %   size it. What we are getting the size of here is a multi-column
-%% %   spanning article (which may still be a useful option).
-%% %
-%% %    \begin{macrocode}
-%% \newcommand{\@rjl@output}{
-%%   \setlength{\hfuzz}{\maxdimen} % no overfull box warnings during sizing; only affects within this group
-%%   \setbox\@rjl@output@art@tmp \vbox{\copy\@cclv}
-%%   \typeout{HEIGHT \the\ht\@rjl@output@art@tmp}
-%%   \setbox\@cclv\vbox{}
-%% }
-%% %    \end{macrocode}
-%% % \end{macro}
 % 
 %    \begin{macrocode}
 }{%
@@ -1353,7 +1324,7 @@
 }
 %    \end{macrocode}
 %
-% \begin{environment}{splitarticle}
+%\begin{environment}{splitarticle}
 % \marg{articleId} article ID (numeric counter)
 % \marg{width} column width
 % \marg{cols} number of columns
@@ -1383,19 +1354,21 @@
   \setlength{\rjl@oldvsize}{\vsize}%
   \xdef\rjl@numcols{#3}%
   \vsize=\maxdimen\hsize=\rjl@colwidth%
-  \setbox\rjl@parabox\vbox\bgroup%
+  \setbox\rjl@parabox\vbox{%
     \rjl@output@article@common@lengths%
     \input{\theartfile}
-  \egroup%
-  \typeout{Parabox read from \theartfile: \the\ht\rjl@parabox \space plus \the\dp\rjl@parabox \space tall by \the\wd\rjl@parabox}
   \setlength{\hsize}{\rjl@oldhsize}%
   \setlength{\vsize}{\rjl@oldvsize}%
 %    \end{macrocode}
+%
 % \begin{macro}{\artheadline}
 % \marg{x-left}
 % \marg{y-top}
 % \marg{width}
 % \marg{height}
+%
+% Simply outputs the headline for the article. Specifying the height
+% doesn't centre the title by itself.
 %    \begin{macrocode}
   \renewcommand{\artheadline}[4]{
     \rjl@xy{\dimexpr ##1+\alleyright\relax}{\dimexpr ##2+\alleybottom\relax}{%
@@ -1433,10 +1406,21 @@
                {##1+\alleyright}{##3-##2+\alleybottom}%
                {\dimexpr ##3-\alleytop-\alleybottom\relax}
   }%
-  % \marg{boxname} without leading rjl@splitbox@
-  % \marg{xpos} (evaluated inside |\dimexpr|\dots|\relax|)
-  % \marg{y-bottom} (evaluated inside |\dimexpr|\dots|\relax|)
-  % \marg{height}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\rjl@artout}
+% \marg{boxname} without leading rjl@splitbox@
+% \marg{xpos} (evaluated inside |\dimexpr|\dots|\relax|)
+% \marg{y-bottom} (evaluated inside |\dimexpr|\dots|\relax|)
+% \marg{height} length to stretch box to
+%
+% This macro performs the actual |rjl@xy| call. It is in a seperate
+% macro for the |\expandafter| magic in |\artcolumn| to work, so that
+% the actual name of the box register is passed to the |\rjl@xy|,
+% allowing the |\rjl@splitboxrm| macro to be reused on the next
+% column.
+%    \begin{macrocode}
   \renewcommand{\rjl@artout}[4]{
     \rjl@xy[%
       \xdef\rjl@splitbox{rjl@splitbox@##1}%
@@ -1446,6 +1430,10 @@
         \expandafter\usebox\csname\rjl@splitbox\endcsname}%
     }%
   }
+%    \end{macrocode}
+% \end{macro}
+%
+%    \begin{macrocode}
 }{
 %  \expandafter\let\csname rjl@headline#1\endcsname\relax%
 %  \expandafter\let\csname rjl@subhead#1\endcsname\relax%
@@ -1461,8 +1449,6 @@
     not allowed outside article environment}}
 \newcommand{\rjl@artout}[4]{}
 %    \end{macrocode}
-% \end{macro}
-% \end{environment}
 %
 % End of the giant |\@ifundefined| that switches between sizing
 % and layout mode.
@@ -1640,7 +1626,7 @@
 \newlength{\rjl@colwidth}
 %    \end{macrocode}
 %
-% \begin{macro}{rjl@multicols}
+% \begin{macro}{\rjl@multicols}
 % \marg{numCols}; the number of columns to break the environment
 % into.
 %
@@ -1726,7 +1712,6 @@
   \splitmaxdepth=\maxdimen%
   \setbox\rjl@parabox@=\vsplit\rjl@parabox to \rjl@boxlength%
   \hbox to \rjl@colwidth{\usebox{\rjl@parabox@}}\hspace{\alleyleft}\hspace{\downrulethick}\hspace{\alleyright}%
-  \typeout{splitcol: \the\rjl@colwidth \space wide by \the\rjl@boxlength}
 }
 % \begin{macro}{\rjl@splitcol@}
 % \marg{boxname}
@@ -1740,12 +1725,7 @@
   \splitmaxdepth=\maxdimen%
   \setbox\rjl@parabox@=\vsplit\rjl@parabox to \rjl@boxlength%
   \global\expandafter\setbox\csname#1\endcsname=\hbox to \rjl@colwidth{\usebox{\rjl@parabox@}}
-  \typeout{splitcol@: \the\rjl@colwidth \space wide by \the\rjl@boxlength}%
 }
-%    \end{macrocode}
-% \end{macro}
-%
-% \begin{macro}{\rjl@splitcol}
 %    \end{macrocode}
 % \end{macro}
 %
