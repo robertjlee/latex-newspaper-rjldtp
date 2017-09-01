@@ -967,6 +967,9 @@
 %   |\rjl@today| is called to fix the |\today| command if the
 %   |forcetoday| option is used; it does nothing otherwise.
 %
+%   The |rjl@artsplitboxcounter| is reset to 0 to prevent the
+%   split-article routine from using up box registers indefinitely.
+%
 %   The output routine is changed to \@rjl@outgetheight, which
 %   captures each article in turn. The initial page width and height
 %   are captured, and restored at the end of the environment. This
@@ -979,6 +982,7 @@
 %    \begin{macrocode}
 \newenvironment{newspaper}{
   \rjl@today
+  \setcounter{rjl@artsplitboxcounter}{0}
   \sbox{\rjl@junkbox}{\maketitle\mbox{end of title}}
   \setlength{\rjl@tmplen}{\dimexpr\paperheight -\ht\rjl@junkbox -\dp\rjl@junkbox \relax}
   \typeout{PAGESIZE: \the\paperwidth,\the\rjl@tmplen}
@@ -1390,14 +1394,14 @@
 % Each column is typeset seperately with a specific |\artcolumn|
 % command.
 %    \begin{macrocode}
-  \newcounter{rjl@artsplitboxcounter}
-  \setcounter{rjl@artsplitboxcounter}{0}
   \renewcommand{\artcolumn}[3]{
     \setlength{\rjl@boxlength}{\dimexpr ##3-\alleytop-\alleybottom\relax}%
-    \typeout{next col length: \the\rjl@boxlength, width: \the\rjl@colwidth}%
     \stepcounter{rjl@artsplitboxcounter}
     \xdef\rjl@splitboxrm{\roman{rjl@artsplitboxcounter}}%
-    \expandafter\newsavebox\csname rjl@splitbox@\rjl@splitboxrm\endcsname
+    % create a new savebox register if we don't already have one defined:
+    \@ifundefined{rjl@splitbox@\rjl@splitboxrm}{%
+      \expandafter\newsavebox\csname rjl@splitbox@\rjl@splitboxrm\endcsname%
+    }{}%
     % TeX primative \setbox needed for \global to work, for box to still be set at end of page...
     %\rjl@splitcol% also outputs intra-column spacing, but that should be okay.
     %\global\expandafter\setbox\csname rjl@splitbox@\rjl@splitboxrm\endcsname\hbox{\rjl@splitcol}
@@ -1442,6 +1446,7 @@
       not allowed outside article environment}}
   \renewcommand{\artcolumn}{\PackageError[rjlnewsp4.dtx]{\protect\artcolumn
       not allowed outside article environment}}
+  \renewcommand{\rjl@artout}[4]{}
 }
 \newcommand{\artheadline}[4]{\PackageError[rjlnewsp4.dtx]{\protect\artcolumn
     not allowed outside article environment}}
@@ -1455,6 +1460,29 @@
 %    \begin{macrocode}
 }
 %    \end{macrocode}
+% \end{environment}
+%
+% \begin{macro}{rjl@artsplitboxcounter}
+% This counter counts the number of box register macros that have been
+% allocated to boxes to use in the |splitarticle| environment.
+% The only way I can see to push a box onto the page at exact
+% coordinates is to use the |rjl@xy| macro with |\usebox|, meaning
+% each individual column needs its own box register for
+% placement. Under \TeXe, there are many more box registers available
+% than original~\TeX; however, they are still a limited resource. So
+% we clear the boxes after each page and reset this counter.
+%
+% NB: \TeXe\ seems not to provide a way to clear a box register, so
+% instead, we merely reset the counter and allow boxes to be
+% reused. The \textit{content} of the boxes are cleared by |\usebox|.
+%
+% As of time of writing, we only support one page, so the
+% |\setcounter| is done inside the |newspaper| environment, which
+% sort-of represents a page.
+%    \begin{macrocode}
+\newcounter{rjl@artsplitboxcounter}
+%    \end{macrocode}
+% \end{macro}
 %
 % \begin{macro}{\rjl@calcheadheight}
 %
