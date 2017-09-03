@@ -737,6 +737,64 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{macro}{\rasterimage}
+% \oarg{captionplacement} T or B, then I or E (default BI for internal bottom)
+% \marg{caption} Text to display above or below the article content
+% \oarg{incrudegraphics-args} Arguments to pass to |\includegraphics|;
+% defaults to |width=|\textit{width}|,height=|\textit{height}
+% \marg{width} Width of the article
+% \marg{height} Height of the article
+% \marg{filename} Filename of the image. \textsc{png}, \textsc{pdf},
+% TODO: extra arguments to includegraphics; use the starred form to
+% crop rather than extend outside the box
+% \textsc{jpeg} are supported by |pdflatex|.
+% Include an image from the given file, scaled to the given
+% dimensions.
+%
+% Because I want to minimise required dependencies, this is only
+% usefully defined if the |graphicx| package is loaded; otherwise we
+% out out an error on use.
+%
+% Note that the |draft| option is passed to |graphicx| by
+% \LaTeX\ automatically, and disables the output of images, to speed
+% up the preview.
+%
+% The placement of the image and caption are handled by the |rasterarticle|
+% envinonment, defined below.
+%
+% \LaTeX\ has very poor support for commands with multiple optional
+% arguments, so this uses nexted calls in plain-\TeX style to fill in
+% each optional argument in turn, before finally calling |\rjl@rasterimage|.
+%    \begin{macrocode}
+\newcommand{\rasterimage}{\@ifstar{\rjl@rasterimage@opts{*}}{\rjl@rasterimage@opts{}}}
+\def\rjl@rasterimage@opts#1{\@ifnextchar[{\rjl@rasterimage@opts@{#1}}{\rjl@rasterimage{#1}{BI}}}
+\def\rjl@rasterimage@opts@#1[#2]{\rjl@rasterimage@{#1}{#2}}
+\def\rjl@rasterimage@#1#2{\@ifnextchar[{\rjl@rasterimage@opt{#1}{#2}}{\rjl@rasterimage{#1}{#2}{default}}}
+\def\rjl@rasterimage@opt#1#2[#3]{\rjl@rasterimage{#1}{#2}{#3}}
+\AtBeginDocument{
+  \@ifpackageloaded{graphicx}{
+    \newcommand{\rjl@rasterimage}[7]{
+      \begin{rasterarticle}[#2]{#4}{#5}{#6}
+        \typeout{graphin 1#1 2#2 3#3 4(#4) 5#5 6#6 7#7}
+        \ifthenelse{\equal{#3}{default}}{
+          \includegraphics#1[width=#5,height=#6]{#7}
+        }{
+          \includegraphics#1[#3]{#7}
+        }
+      \end{rasterarticle}
+    }
+  }{
+    \newcommand{\rjl@rasterimage}[7][]{
+      \ClassError{rjlnewsp4}{To use the \protect\rasterimage\space
+        command, you musc include the graphicx package in your preamble%
+      }{Add the line \protect\usepackage\protect{graphicx\protect} before
+        \protect\begin\protect{document\protect} in your main .tex file}
+    }
+  }
+}
+%    \end{macrocode}
+% \end{macro}
+%
 % \begin{environment}{rasterarticle}
 % \oarg{captionplacement} T or B, then I or E (default BI for internal bottom)
 % \marg{caption} Text to display above or below the article content
