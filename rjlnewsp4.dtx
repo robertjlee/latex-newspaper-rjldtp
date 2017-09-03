@@ -737,6 +737,106 @@
 %    \end{macrocode}
 % \end{macro}
 %
+% \begin{environment}{rasterarticle}
+% \oarg{captionplacement} T or B, then I or E (default BI for internal bottom)
+% \marg{caption} Text to display above or below the article content
+% \marg{width} Width of the article
+% \marg{height} Height of the article
+
+% Place a fixed-size item on the page (eg a photograph).
+% The \LaTeX\ source inside the environment is evaluated inside a box
+% of the given size.
+%
+% The |captionplacement| is a 2-letter code:
+%\begin{itemize}
+% \item[TI] \textbf{T}op, \textbf{I}nternal; the caption is placed
+% above the content and the |height| specified includes the caption
+% size (space of content is reduced to accommodate the caption)
+% \item[TE] \textbf{T}op, \textbf{E}xternal: the caption is placed
+% above the content and the |height| specified excludes the caption
+% size (additional space is added to accommodate the caption)
+% \item[BI] \textbf{B}ottom, \textbf{I}nternal; the caption is placed
+% below the content and the |height| specified includes the caption
+% size
+% \item[BE] \textbf{B}ottom, \textbf{E}xternal: the caption is placed
+% below the content and the |height| specified excludes the caption
+% size
+%\end{itemize}
+%    \begin{macrocode}
+\newenvironment{rasterarticle}[4][BI]{
+  \typeout{Raster article #1}
+  \setlength{\newsartwidth}{#3} % for output
+  \hsize=#3\vsize=#4
+  \rjl@ifflag{#1}{Tt}{\global\rjl@captiontoptrue}{}
+  \rjl@ifflag{#1}{Bb}{\global\rjl@captiontopfalse}{}
+  \rjl@ifflag{#1}{Ii}{\addtolength{\vsize}{\dimexpr\ht\@tempboxa+\dp\@tempboxa}}{}
+  \rjl@ifflag{#1}{Ee}{}{}
+  \renewcommand{\theheadline}{#2}
+  \setbox\@tempboxa=\hbox to #3{\hfill\theheadline\hfill}
+  \setbox\rjl@parabox\vbox\bgroup
+  \ifrjl@captiontop\vbox{\usebox\@tempboxa}\fi
+  \vbox\bgroup
+}{
+  \egroup
+  \ifrjl@captiontop\else\vbox{\usebox\@tempboxa}\fi
+  \egroup
+  \rjl@process@article@raster
+}
+%    \end{macrocode}
+%
+%  \begin{macro}{\ifrjl@captiontop}
+% This is a \LaTeX flag used inside |rasterarticle|, to determine if
+% the caption should be drawn above or below the content. It is set by
+% a call to |\rjl@ifflag| when reading the arguments, and evaluated
+% once before the macro (for above) and once after (below). This will
+% probably do the opposite of what you expect in a bottom-to-top language.
+%    \begin{macrocode}
+\newif\ifrjl@captiontop
+%    \end{macrocode}
+%   \end{macro}
+% \end{environment}
+%
+% \begin{macro}{\rjl@ifflag}
+% \marg{usertext}
+% \marg{chars}
+% \marg{macro}
+%
+% Executes |macro| if any characters in |chars| occur within
+% |usertext|. All output is discarded. No ``else'' case is supported.
+%
+% This checks the first character, uses |\@gobble#1| to strip the
+% first character, then calls itself recursively until |#1| is empty.
+% It also recurses on |#2| using |\@gobble| to process any unprocessed
+% flags.
+%
+% \LaTeX's temporary |\@tempboxa| (normally used for |\settowidth|
+% etc) is commandeered to remove the trailing characters that would
+% build up on the output.
+%
+% This is quite quick-and-dirty; in particular, |#3| may be
+% expanded multiple times.
+%
+%    \begin{macrocode}
+\newcommand{\rjl@ifflag}[3]{
+  \setbox\@tempboxa\hbox{
+    \rjl@readflag#2
+    \ifthenelse{\equal{#2}{\rjl@flag}}{}{
+      \edef\rjl@nextflag{\@gobble#2}
+      \expandafter\rjl@ifflag\expandafter{#1}{\rjl@nextflag}{#3}
+    }
+    \ifthenelse{\equal{#1}{}}{}{
+      \expandafter\@ifnextchar\rjl@flag{
+        #3}{}#1
+      \expandafter\rjl@ifflag\expandafter{\@gobble#1}{#2}{#3}
+    }
+  }
+  \setbox\@tempboxa\box\voidb@x
+}
+\def\rjl@readflag#1{\edef\rjl@flag{#1}}
+%    \end{macrocode}
+% \end{macro}
+%
+%
 % \subsection{Lengths affecting alleys between articles}
 % TODO: Be more clear about the distinction between alleys and gutters.
 %
@@ -883,7 +983,7 @@
 % It takes no parameters, but experts
 % |\rjl@numcols| to be set.
 %
-% It is called by both definitions of |\rjl@autput@article|, so to
+% It is called by both definitions of |\rjl@output@article|, so to
 % ensure that the articles are output at the same dimensions as they
 % are measured.
 %
@@ -957,6 +1057,19 @@
     \addtolength{\newsartwidth}{\newscolwidth}
   }
   \addtocounter{rjl@maxcols}{-1}
+}
+%    \end{macrocode}
+% \end{macro}
+%
+% \begin{macro}{\rjl@process@article}
+%
+% This is called after every |rasterarticle|.
+% In this personality, it determines and output the
+% size of the article.
+%
+%    \begin{macrocode}
+\newcommand{\rjl@process@article@raster}{
+  \typeout{RASTER:WIDTH,HEIGHT: \the\newsartwidth,\the\vsize}%
 }
 %    \end{macrocode}
 % \end{macro}
@@ -1113,6 +1226,26 @@
   \stepcounter{rjl@art@counter}% 0-based counter
 }
 %    \end{macrocode}
+%
+% \begin{macro}{\rjl@process@article@raster}
+% To store a raster for reuse, we set the flag |\rjl@raster<id>| to
+% the name of a box register. We use the same set of boxes as
+% the |splitarticle| environment as these are already cleaned up at
+% the end of each page.
+%    \begin{macrocode}
+\newcommand{\rjl@process@article@raster}{%
+  \edef\rjl@theartid{\roman{rjl@art@counter}}%
+  \stepcounter{rjl@artsplitboxcounter}%
+  \xdef\rjl@splitboxrm{\roman{rjl@artsplitboxcounter}}%
+  \@ifundefined{rjl@splitbox@\rjl@splitboxrm}{%
+    \expandafter\newsavebox\csname rjl@splitbox@\rjl@splitboxrm\endcsname%
+  }{}%
+  \global\expandafter\setbox\csname rjl@splitbox@\rjl@splitboxrm\endcsname\vbox{\usebox{\rjl@parabox}}%
+  \expandafter\xdef\csname rjl@raster\rjl@theartid\endcsname{rjl@splitbox@\rjl@splitboxrm}%
+  \stepcounter{rjl@art@counter}% 0-based counter
+}
+%    \end{macrocode}
+% \end{macro}
 %
 % \subsection{Coordinate System}
 % The coordinates of the output are given as $x$ and $y$ coordinates,
@@ -1289,18 +1422,26 @@
 % when read in the output routine, or they default to |0.0pt|.
 %    \begin{macrocode}
 \newcommand{\doarticle}[6]{%
+  \typeout{Doing article #1}%
   \rjl@xy{\dimexpr #2+\alleyright\relax}{\dimexpr #3+\alleybottom\relax}{%
     \parbox[t][\dimexpr #5-\alleytop-\alleybottom\relax][s]{%
       \dimexpr #4-\alleyleft-\alleyright\relax}{%
-      \renewcommand{\theheadline}{\csname rjl@headline#1\endcsname}%
-      \renewcommand{\thesubhead}{\csname rjl@subhead#1\endcsname}%
-      \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}
-      \xdef\rjl@numcols{#6}%
-      \rjl@output@headlines@common%
-      \rjl@output@article@common%
-      \expandafter\let\csname rjl@headline#1\endcsname\relax%
-      \expandafter\let\csname rjl@subhead#1\endcsname\relax%
-      \expandafter\let\csname rjl@artfile#1\endcsname\relax%
+      \@ifundefined{rjl@raster\romannumeral#1}{%
+        \renewcommand{\theheadline}{\csname rjl@headline#1\endcsname}%
+        \renewcommand{\thesubhead}{\csname rjl@subhead#1\endcsname}%
+        \renewcommand{\theartfile}{\csname rjl@artfile#1\endcsname}
+        \xdef\rjl@numcols{#6}%
+        \rjl@output@headlines@common%
+        \rjl@output@article@common%
+        \expandafter\let\csname rjl@headline#1\endcsname\relax%
+        \expandafter\let\csname rjl@subhead#1\endcsname\relax%
+        \expandafter\let\csname rjl@artfile#1\endcsname\relax%
+      }{%
+        % raster ``image''; just put out the box already rendered
+        \edef\rjl@tmp{\csname rjl@raster\romannumeral#1\endcsname}
+        \vspace*{\expandafter\dp\csname\rjl@tmp\endcsname}
+        \expandafter\usebox\csname\rjl@tmp\endcsname
+      }%
     }}%
 %    \end{macrocode}
 %
@@ -1468,11 +1609,11 @@
 % The only way I can see to push a box onto the page at exact
 % coordinates is to use the |rjl@xy| macro with |\usebox|, meaning
 % each individual column needs its own box register for
-% placement. Under \TeXe, there are many more box registers available
+% placement. Under \LaTeXe, there are many more box registers available
 % than original~\TeX; however, they are still a limited resource. So
 % we clear the boxes after each page and reset this counter.
 %
-% NB: \TeXe\ seems not to provide a way to clear a box register, so
+% NB: \TeX\ seems not to provide a way to clear a box register, so
 % instead, we merely reset the counter and allow boxes to be
 % reused. The \textit{content} of the boxes are cleared by |\usebox|.
 %

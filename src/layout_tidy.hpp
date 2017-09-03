@@ -65,8 +65,11 @@ private:
 	a.w_ = maxX - a.x_;
       auto &art = iter->art_;
       auto &opt = iter->opt_;
-      iter = result_.erase(iter);
-      iter = result_.emplace(iter, articlePlacement(a, art, opt));
+      // we cannot resize fixed-size articles
+      if (iter->art_.filename() != std::string("RASTER")) {
+	iter = result_.erase(iter);
+	iter = result_.emplace(iter, articlePlacement(a, art, opt));
+      }
     }
   }
   /*

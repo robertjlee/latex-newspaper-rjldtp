@@ -88,6 +88,14 @@ Page readArtOptions(shellout &size_calculator, bool verbose) {
 
       auto &art=page.back();
       art.addOption(numCols, width, length);
+    } else if (shellline.compare(0,21,"RASTER:WIDTH,HEIGHT: ") == 0) {
+      std::stringstream instream(shellline.substr(21));
+      double width = readCSV<double>(instream);
+      double length = readCSV<double>(instream);
+      page.newArticle("RASTER");
+
+      auto &art=page.back();
+      art.addOption(1, width, length);
     } else if (shellline.compare(0,23,"Generating Layout file ") == 0) {
       auto filename = shellline.substr(23);
       page.layfile(filename);
