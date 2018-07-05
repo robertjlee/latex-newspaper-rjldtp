@@ -173,8 +173,7 @@ std::vector<int> Page::findBestOptions() const {
    * Largest total area less than page area wins
    *
    */
-
-  std::vector<std::vector<int> > combinations = calcPermutations(arts_.size(), arts_[0].size());
+  std::vector<std::vector<int> > combinations = calcPermutations();
   if (0) {
     using namespace std;
     //cout << "Combinations";
@@ -240,34 +239,61 @@ std::vector<int> Page::sortArticlesBySize(std::vector<int> toRemap) {
   return rtn;
 }
 
+
 /*
- * Given A = [1,2,3] [1,2,3]
- * Produce combinations:
- * 1,1 ; 1,2 ; 1,3 ; 2,1 ; 2,2 ; 2,3 ; 3,1 ; 3,2 ; 3,3
+ * Algorithm: We have N articles, each with P(N) options:
+ *
+ * Options: (1,2,3) ; (4,5) ; (6)
+ * P(N): 3,2,1
+ *
+ * P(N) >= 1, N and P(N) both integer.
+ *
+ * We start by calculating the product "prod" of P(N) for all N; this
+ * is the number of results (6 is this example)
+ *
+ * For x in articles, divide "prod" by P(N); add "prod" of each
+ * result to the output.
+ *
+ * article 1, "prod" becomes 6/3=2, result list is:
+ * [1] [1] [2] [2] [3] [3]
+ * article 2, "prod" becomes 2/2=1, result list is:
+ * [1,4] [1,5] [2,4] [2,5]
+ * article 3, "prod" becomes 1/1=1, result list is:
+ * [1,4,6] [1,5,6] [2,4,6] [2,5,6]
  */
-std::vector<std::vector<int > > 
-Page::calcPermutations(int numArticles, int numOptions) const {
+std::vector<std::vector<int > >
+Page::calcPermutations() const {
+  //  std::cout << "Calculating permutations" << std::endl;
   std::vector<std::vector<int > > rtn;
-  if (numArticles > 1) { // break condition
-    auto tail = calcPermutations(numArticles - 1, numOptions);
-    for (int i=0; i < numOptions; ++i) {
-      for (auto tails : tail) {
-	std::vector<int> ibox;
-	ibox.emplace_back(i);
-	int pos = rtn.size();
-	rtn.emplace_back(ibox);
-	for (auto t : tails) rtn[pos].push_back(t);
+  int prod=1;
+  for (auto a : arts_)
+    prod *= a.size();
+  for (int i=0; i < prod; ++i)
+    rtn.push_back(std::vector<int>());
+  const int totalResults = prod; // rtn.size()
+  //  std::cout << " Prepared " << prod << " results" << std::endl;
+  int num = prod;
+  for (auto a : arts_) {
+    // std::cout << "Next article: " << a.filename() << std::endl;
+    num /= a.size();
+    int i=0;
+    while (i < totalResults) {
+      int optIdx=0;
+      for (auto o : a) {
+	for (int loop =0; loop < num; ++loop) {
+	  rtn[i].push_back(optIdx);// record index into options
+	  ++i;
+	}
+	++optIdx;
       }
     }
-  } else {
-    for (int i=0; i < numOptions; ++i) {
-      std::vector<int> ibox;
-      ibox.emplace_back(i);
-      rtn.push_back(ibox);
-    }
+
   }
+  // std::cout << "Pemutations done" << std::endl;
+  // std::cout << "Permutations are: " << rtn;
   return rtn;
 }
+
 
 // for debugging: how many article options are to be considered.
 // may give a little indication of the time to be taken.
